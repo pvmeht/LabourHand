@@ -5,7 +5,8 @@ import { Button } from "./ui/button";
 import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
-import { SessionManager, mockAuth } from "../../utils/session";
+import { SessionManager } from "../../utils/session";
+import { authApi } from "../../utils/api";
 
 export function Login() {
   const [searchParams] = useSearchParams();
@@ -13,7 +14,7 @@ export function Login() {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
-  
+
   const [formData, setFormData] = useState({
     email: "",
     password: "",
@@ -26,14 +27,29 @@ export function Login() {
     setLoading(true);
 
     try {
-      const user = await mockAuth.login(formData.email, formData.password, formData.role);
-      SessionManager.createSession(user);
-      
-      // Navigate based on role
-      if (user.role === "worker") {
-        navigate("/dashboard");
+      const { token, user } = await authApi.login(formData.email, formData.password);
+      // Persist JWT for API client
+      localStorage.setItem('labourhand_token', token);
+      // Map backend user to session shape
+      SessionManager.createSession({
+        id: String(user.id),
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role === 'WORKER' ? 'worker' : 'owner',
+        avatar: user.avatar,
+        verified: user.verified,
+        language: (user.language as 'en' | 'hi') || 'en',
+        skills: user.skills,
+        rating: user.rating,
+        completedJobs: user.completedJobs,
+        companyName: user.companyName,
+        projectsPosted: user.projectsPosted,
+      });
+      if (user.role === 'WORKER') {
+        navigate('/dashboard');
       } else {
-        navigate("/contractor");
+        navigate('/contractor');
       }
     } catch (err) {
       setError("Invalid email or password");
@@ -74,22 +90,20 @@ export function Login() {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: "worker" })}
-              className={`py-2 px-4 rounded-md font-medium transition-all ${
-                formData.role === "worker"
+              className={`py-2 px-4 rounded-md font-medium transition-all ${formData.role === "worker"
                   ? "bg-white shadow-sm text-gray-900"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               Worker
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: "owner" })}
-              className={`py-2 px-4 rounded-md font-medium transition-all ${
-                formData.role === "owner"
+              className={`py-2 px-4 rounded-md font-medium transition-all ${formData.role === "owner"
                   ? "bg-white shadow-sm text-gray-900"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               Employer
             </button>
@@ -181,9 +195,9 @@ export function Login() {
               Demo Credentials:
             </p>
             <p className="text-xs text-blue-700">
-              Email: any@example.com
+              Worker: rajesh@labourhand.com / worker123
               <br />
-              Password: password (min 6 chars)
+              Owner: priya@labourhand.com / owner123
             </p>
           </div>
 
