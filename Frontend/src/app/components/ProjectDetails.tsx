@@ -1,3 +1,4 @@
+import { useState, useEffect } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   ArrowLeft,
@@ -6,285 +7,172 @@ import {
   IndianRupee,
   Star,
   CheckCircle,
+  Loader2,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { BottomNav } from "./BottomNav";
+import { projectApi, bidApi, Project, Bid } from "../../utils/api";
 
 export function ProjectDetails() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [project, setProject] = useState<Project | null>(null);
+  const [bids, setBids] = useState<Bid[]>([]);
+  const [loading, setLoading] = useState(true);
 
-  const project = {
-    id: id || "1",
-    title: "Apartment Painting",
-    description:
-      "Need experienced painters for a 3BHK apartment. Walls and ceiling work required. High-quality finish expected.",
-    timeline: "5 days",
-    budget: "₹10,000",
-    location: "Indiranagar, Bangalore",
-    distance: "2.5 km",
-    postedBy: "Priya Sharma",
-    postedDate: "2 days ago",
-    status: "open-for-bids",
-  };
+  useEffect(() => {
+    if (!id) return;
+    Promise.all([
+      projectApi.getById(Number(id)),
+      bidApi.getProjectBids(Number(id)),
+    ])
+      .then(([p, b]) => { setProject(p); setBids(b); })
+      .catch(console.error)
+      .finally(() => setLoading(false));
+  }, [id]);
 
-  const bids = [
-    {
-      id: 1,
-      workerName: "Rajesh Kumar",
-      workerId: "1",
-      rating: 4.8,
-      completedJobs: 127,
-      bidAmount: "₹9,500",
-      estimatedDays: 4,
-      message: "I have 15 years of experience in painting. Can provide samples.",
-      verified: true,
-      avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=100&h=100&fit=crop",
-    },
-    {
-      id: 2,
-      workerName: "Amit Patel",
-      workerId: "2",
-      rating: 4.6,
-      completedJobs: 89,
-      bidAmount: "₹9,800",
-      estimatedDays: 5,
-      message: "Quality work guaranteed. Free touch-up for 6 months.",
-      verified: true,
-      avatar: "https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=100&h=100&fit=crop",
-    },
-    {
-      id: 3,
-      workerName: "Suresh Singh",
-      workerId: "3",
-      rating: 4.9,
-      completedJobs: 156,
-      bidAmount: "₹10,200",
-      estimatedDays: 4,
-      message: "Expert painter with Asian Paints certification.",
-      verified: true,
-      avatar: "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=100&h=100&fit=crop",
-    },
-  ];
+  if (loading) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
+      </div>
+    );
+  }
 
-  const getStatusBadge = (status: string) => {
-    switch (status) {
-      case "open-for-bids":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-0">
-            Open for Bids
-          </Badge>
-        );
-      case "in-progress":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 border-0">
-            In Progress
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge className="bg-gray-100 text-gray-800 border-0">
-            Completed
-          </Badge>
-        );
-      case "payment-verified":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-0">
-            Payment Verified
-          </Badge>
-        );
-      default:
-        return null;
-    }
-  };
+  if (!project) {
+    return (
+      <div className="min-h-screen flex items-center justify-center">
+        <p className="text-gray-500">Project not found</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-muted pb-24">
+    <div className="min-h-screen bg-gray-50 pb-20">
       {/* Header */}
-      <div className="bg-white border-b border-border sticky top-0 z-10">
-        <div className="max-w-screen-lg mx-auto p-4">
-          <div className="flex items-center gap-3 mb-4">
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigate("/")}
-            >
-              <ArrowLeft className="h-5 w-5" />
-            </Button>
-            <h2>Project Details</h2>
-          </div>
-        </div>
+      <div className="bg-white sticky top-0 z-10 px-4 py-3 flex items-center gap-3 border-b">
+        <Button variant="ghost" size="icon" onClick={() => navigate(-1)}>
+          <ArrowLeft className="h-5 w-5" />
+        </Button>
+        <h1 className="font-semibold text-gray-900">Project Details</h1>
       </div>
 
-      <div className="max-w-screen-lg mx-auto p-4 space-y-4">
-        {/* Project Info Card */}
-        <Card className="p-5">
+      <div className="p-4 space-y-4">
+        {/* Project Info */}
+        <Card className="p-4">
           <div className="flex items-start justify-between mb-3">
-            <h1 className="flex-1">{project.title}</h1>
-            {getStatusBadge(project.status)}
-          </div>
-          <p className="text-muted-foreground mb-4">{project.description}</p>
-
-          {/* Project Details Grid */}
-          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mb-4">
-            <div className="flex items-start gap-3">
-              <div className="bg-accent p-2 rounded-lg">
-                <Calendar className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Timeline</p>
-                <p className="font-semibold">{project.timeline}</p>
+            <div className="flex-1">
+              <h2 className="text-xl font-bold text-gray-900 mb-1">{project.title}</h2>
+              <div className="flex items-center gap-1 text-gray-500 text-sm">
+                <MapPin className="h-4 w-4" />
+                {project.location}
+                {project.distanceKm && (
+                  <span className="ml-1">· {project.distanceKm.toFixed(1)} km away</span>
+                )}
               </div>
             </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-accent p-2 rounded-lg">
-                <IndianRupee className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Budget</p>
-                <p className="font-semibold">{project.budget}</p>
-              </div>
-            </div>
-            <div className="flex items-start gap-3">
-              <div className="bg-accent p-2 rounded-lg">
-                <MapPin className="h-5 w-5 text-primary" />
-              </div>
-              <div>
-                <p className="text-sm text-muted-foreground">Location</p>
-                <p className="font-semibold">{project.location}</p>
-              </div>
-            </div>
-          </div>
-
-          {/* Prominent Distance Indicator */}
-          <div className="mb-4">
             <Badge
-              variant="outline"
-              className="bg-blue-50 border-secondary text-secondary gap-1.5 px-3 py-1.5 text-sm font-semibold"
+              className={
+                project.status === "OPEN_FOR_BIDS"
+                  ? "bg-green-100 text-green-800"
+                  : project.status === "IN_PROGRESS"
+                    ? "bg-blue-100 text-blue-800"
+                    : "bg-gray-100 text-gray-800"
+              }
             >
-              <MapPin className="h-4 w-4" />
-              Distance from you: {project.distance}
+              {project.status === "OPEN_FOR_BIDS"
+                ? "Open for Bids"
+                : project.status === "IN_PROGRESS"
+                  ? "In Progress"
+                  : project.status.replace(/_/g, " ")}
             </Badge>
           </div>
 
-          <div className="pt-4 border-t border-border">
-            <p className="text-sm text-muted-foreground">
-              Posted by <span className="font-semibold text-foreground">{project.postedBy}</span> • {project.postedDate}
-            </p>
+          <p className="text-gray-600 text-sm mb-4">{project.description}</p>
+
+          <div className="grid grid-cols-3 gap-3">
+            <div className="text-center p-3 bg-green-50 rounded-lg">
+              <IndianRupee className="h-5 w-5 text-green-600 mx-auto mb-1" />
+              <p className="text-xs text-gray-500">Budget</p>
+              <p className="font-semibold text-sm">₹{project.budget.toLocaleString()}</p>
+            </div>
+            <div className="text-center p-3 bg-blue-50 rounded-lg">
+              <Calendar className="h-5 w-5 text-blue-600 mx-auto mb-1" />
+              <p className="text-xs text-gray-500">Timeline</p>
+              <p className="font-semibold text-sm">{project.timelineDays} days</p>
+            </div>
+            <div className="text-center p-3 bg-purple-50 rounded-lg">
+              <Avatar className="h-5 w-5 mx-auto mb-1">
+                <AvatarFallback className="text-xs bg-purple-200">
+                  {project.ownerName?.charAt(0)}
+                </AvatarFallback>
+              </Avatar>
+              <p className="text-xs text-gray-500">Posted by</p>
+              <p className="font-semibold text-sm truncate">{project.ownerName}</p>
+            </div>
           </div>
+
+          <p className="text-xs text-gray-400 mt-3">Posted {project.postedAt}</p>
         </Card>
 
-        {/* Live Bids Section */}
+        {/* Bids */}
         <div>
-          <div className="flex items-center justify-between mb-3">
-            <h3>Live Bids ({bids.length})</h3>
-            <Button
-              variant="outline"
-              size="sm"
-              className="h-9"
-            >
-              Compare Bids
-            </Button>
-          </div>
-
-          <div className="space-y-3">
-            {bids.map((bid) => (
-              <Card key={bid.id} className="p-4">
-                {/* Worker Info */}
-                <div className="flex items-start gap-3 mb-3">
-                  <Avatar className="h-14 w-14 border-2 border-secondary">
-                    <AvatarImage src={bid.avatar} />
-                    <AvatarFallback>{bid.workerName.charAt(0)}</AvatarFallback>
-                  </Avatar>
-                  <div className="flex-1">
-                    <div className="flex items-center gap-2 mb-1">
-                      <h4 className="text-base">{bid.workerName}</h4>
-                      {bid.verified && (
-                        <CheckCircle className="h-4 w-4 text-secondary" />
-                      )}
-                    </div>
-                    <div className="flex items-center gap-3 text-sm text-muted-foreground">
-                      <div className="flex items-center gap-1">
-                        <Star className="h-4 w-4 fill-yellow-400 text-yellow-400" />
-                        <span className="font-semibold text-foreground">
-                          {bid.rating}
-                        </span>
+          <h3 className="font-semibold text-gray-900 mb-3">
+            Bids ({bids.length})
+          </h3>
+          {bids.length === 0 ? (
+            <Card className="p-6 text-center text-gray-500">
+              No bids yet. Be the first to bid!
+            </Card>
+          ) : (
+            <div className="space-y-3">
+              {bids.map((bid) => (
+                <Card key={bid.id} className="p-4">
+                  <div className="flex items-start gap-3">
+                    <Avatar className="h-10 w-10">
+                      <AvatarImage src={bid.workerAvatar} />
+                      <AvatarFallback>{bid.workerName?.charAt(0)}</AvatarFallback>
+                    </Avatar>
+                    <div className="flex-1">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="font-medium text-sm">{bid.workerName}</span>
+                        {bid.workerVerified && (
+                          <CheckCircle className="h-4 w-4 text-blue-500" />
+                        )}
                       </div>
-                      <span>•</span>
-                      <span>{bid.completedJobs} jobs</span>
+                      <div className="flex items-center gap-1 text-sm text-gray-500 mb-2">
+                        <Star className="h-3 w-3 fill-yellow-400 text-yellow-400" />
+                        {bid.workerRating} · {bid.workerCompletedJobs} jobs
+                      </div>
+                      <p className="text-sm text-gray-600 mb-2">{bid.message}</p>
+                      <div className="flex gap-3 text-sm">
+                        <span className="font-semibold text-green-600">
+                          ₹{bid.amount.toLocaleString()}
+                        </span>
+                        <span className="text-gray-500">{bid.estimatedDays} days</span>
+                      </div>
                     </div>
                   </div>
-                  <Button
-                    variant="ghost"
-                    size="sm"
-                    onClick={() => navigate(`/worker/${bid.workerId}`)}
-                  >
-                    View Profile
-                  </Button>
-                </div>
-
-                {/* Bid Details */}
-                <div className="bg-accent p-3 rounded-lg mb-3">
-                  <div className="grid grid-cols-2 gap-4 mb-2">
-                    <div>
-                      <p className="text-sm text-muted-foreground">Bid Amount</p>
-                      <p className="text-xl font-bold text-primary">
-                        {bid.bidAmount}
-                      </p>
-                    </div>
-                    <div>
-                      <p className="text-sm text-muted-foreground">
-                        Completion Time
-                      </p>
-                      <p className="text-xl font-bold">{bid.estimatedDays} days</p>
-                    </div>
-                  </div>
-                  <p className="text-sm text-muted-foreground italic">
-                    "{bid.message}"
-                  </p>
-                </div>
-
-                {/* Action Buttons */}
-                <div className="flex gap-2">
-                  <Button
-                    className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-11"
-                  >
-                    Accept Bid
-                  </Button>
-                  <Button
-                    variant="outline"
-                    className="h-11 px-6"
-                  >
-                    Message
-                  </Button>
-                </div>
-              </Card>
-            ))}
-          </div>
+                </Card>
+              ))}
+            </div>
+          )}
         </div>
 
-        {/* Place Your Bid (for workers viewing) */}
-        <Card className="p-4 bg-accent border-primary">
-          <div className="flex items-center justify-between">
-            <div>
-              <h4 className="mb-1">Interested in this project?</h4>
-              <p className="text-sm text-muted-foreground">
-                Submit your bid to get hired
-              </p>
-            </div>
-            <Button
-              className="bg-primary hover:bg-primary/90 text-primary-foreground"
-              onClick={() => navigate(`/bid/${project.id}`)}
-            >
-              Place Bid
-            </Button>
-          </div>
-        </Card>
+        {/* Place Bid Button */}
+        {project.status === "OPEN_FOR_BIDS" && (
+          <Button
+            className="w-full"
+            onClick={() => navigate(`/project/${id}/bid`)}
+          >
+            Place Your Bid
+          </Button>
+        )}
       </div>
-      
+
       <BottomNav />
     </div>
   );

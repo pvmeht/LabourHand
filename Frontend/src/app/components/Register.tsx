@@ -6,7 +6,8 @@ import { Input } from "./ui/input";
 import { Label } from "./ui/label";
 import { Card } from "./ui/card";
 import { Checkbox } from "./ui/checkbox";
-import { SessionManager, mockAuth } from "../../utils/session";
+import { SessionManager } from "../../utils/session";
+import { authApi } from "../../utils/api";
 
 export function Register() {
   const [searchParams] = useSearchParams();
@@ -15,7 +16,7 @@ export function Register() {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
   const [agreedToTerms, setAgreedToTerms] = useState(false);
-  
+
   const [formData, setFormData] = useState({
     name: "",
     email: "",
@@ -50,14 +51,31 @@ export function Register() {
     setLoading(true);
 
     try {
-      const user = await mockAuth.register(formData);
-      SessionManager.createSession(user);
-      
-      // Navigate based on role
-      if (user.role === "worker") {
-        navigate("/dashboard");
+      const { token, user } = await authApi.register({
+        name: formData.name,
+        email: formData.email,
+        phone: formData.phone,
+        password: formData.password,
+        role: formData.role === 'owner' ? 'OWNER' : 'WORKER',
+        companyName: formData.companyName || undefined,
+      });
+      localStorage.setItem('labourhand_token', token);
+      SessionManager.createSession({
+        id: String(user.id),
+        name: user.name,
+        email: user.email,
+        phone: user.phone,
+        role: user.role === 'WORKER' ? 'worker' : 'owner',
+        avatar: user.avatar,
+        verified: user.verified,
+        language: (user.language as 'en' | 'hi') || 'en',
+        skills: user.skills,
+        companyName: user.companyName,
+      });
+      if (user.role === 'WORKER') {
+        navigate('/dashboard');
       } else {
-        navigate("/contractor");
+        navigate('/contractor');
       }
     } catch (err) {
       setError("Registration failed. Please try again.");
@@ -98,22 +116,20 @@ export function Register() {
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: "worker" })}
-              className={`py-2 px-4 rounded-md font-medium transition-all ${
-                formData.role === "worker"
+              className={`py-2 px-4 rounded-md font-medium transition-all ${formData.role === "worker"
                   ? "bg-white shadow-sm text-gray-900"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               Worker
             </button>
             <button
               type="button"
               onClick={() => setFormData({ ...formData, role: "owner" })}
-              className={`py-2 px-4 rounded-md font-medium transition-all ${
-                formData.role === "owner"
+              className={`py-2 px-4 rounded-md font-medium transition-all ${formData.role === "owner"
                   ? "bg-white shadow-sm text-gray-900"
                   : "text-gray-600"
-              }`}
+                }`}
             >
               Employer
             </button>

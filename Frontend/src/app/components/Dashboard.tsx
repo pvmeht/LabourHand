@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
 import {
   MapPin,
@@ -19,11 +19,21 @@ import { Card } from "./ui/card";
 import { Switch } from "./ui/switch";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { BottomNav } from "./BottomNav";
+import { projectApi, Project } from "../../utils/api";
+import { SessionManager } from "../../utils/session";
 
 export function Dashboard() {
   const [userMode, setUserMode] = useState<"worker" | "owner">("worker");
   const [language, setLanguage] = useState<"en" | "hi">("en");
   const navigate = useNavigate();
+  const [nearbyOpportunities, setNearbyOpportunities] = useState<Project[]>([]);
+  const [loading, setLoading] = useState(true);
+  const currentUser = SessionManager.getCurrentUser();
+
+  useEffect(() => {
+    if (currentUser) setUserMode(currentUser.role as 'worker' | 'owner');
+    projectApi.getNearby().then(setNearbyOpportunities).catch(console.error).finally(() => setLoading(false));
+  }, []);
 
   const jobCategories = [
     { id: 1, name: "Construction", icon: Hammer, color: "bg-orange-100" },
@@ -34,65 +44,17 @@ export function Dashboard() {
     { id: 6, name: "Masonry", icon: Home, color: "bg-red-100" },
   ];
 
-  const nearbyOpportunities = [
-    {
-      id: 1,
-      title: "Apartment Painting",
-      location: "Indiranagar, Bangalore",
-      budget: "₹10,000",
-      distance: "2.5 km",
-      status: "open-for-bids",
-      lat: 12.9716,
-      lng: 77.6412,
-    },
-    {
-      id: 2,
-      title: "Kitchen Renovation",
-      location: "Koramangala, Bangalore",
-      budget: "₹45,000",
-      distance: "3.8 km",
-      status: "open-for-bids",
-      lat: 12.9352,
-      lng: 77.6245,
-    },
-    {
-      id: 3,
-      title: "Electrical Wiring",
-      location: "Whitefield, Bangalore",
-      budget: "₹15,000",
-      distance: "5.1 km",
-      status: "in-progress",
-      lat: 12.9698,
-      lng: 77.7499,
-    },
-  ];
 
   const getStatusBadge = (status: string) => {
     switch (status) {
-      case "open-for-bids":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-0">
-            Open for Bids
-          </Badge>
-        );
-      case "in-progress":
-        return (
-          <Badge className="bg-blue-100 text-blue-800 border-0">
-            In Progress
-          </Badge>
-        );
-      case "completed":
-        return (
-          <Badge className="bg-gray-100 text-gray-800 border-0">
-            Completed
-          </Badge>
-        );
-      case "payment-verified":
-        return (
-          <Badge className="bg-green-100 text-green-800 border-0">
-            Payment Verified
-          </Badge>
-        );
+      case "OPEN_FOR_BIDS":
+        return <Badge className="bg-green-100 text-green-800 border-0">Open for Bids</Badge>;
+      case "IN_PROGRESS":
+        return <Badge className="bg-blue-100 text-blue-800 border-0">In Progress</Badge>;
+      case "COMPLETED":
+        return <Badge className="bg-gray-100 text-gray-800 border-0">Completed</Badge>;
+      case "PAYMENT_VERIFIED":
+        return <Badge className="bg-green-100 text-green-800 border-0">Payment Verified</Badge>;
       default:
         return null;
     }
@@ -126,7 +88,7 @@ export function Dashboard() {
               <p className="text-sm text-muted-foreground">Senior Mason</p>
             </div>
           </div>
-          
+
           {/* Language Toggle Button */}
           <Button
             variant="outline"
@@ -142,9 +104,8 @@ export function Dashboard() {
         {/* Mode Toggle */}
         <div className="flex items-center justify-center gap-3 mt-4 p-3 bg-accent rounded-lg max-w-screen-lg mx-auto">
           <span
-            className={`transition-colors ${
-              userMode === "worker" ? "text-foreground" : "text-muted-foreground"
-            }`}
+            className={`transition-colors ${userMode === "worker" ? "text-foreground" : "text-muted-foreground"
+              }`}
           >
             Worker Mode
           </span>
@@ -156,9 +117,8 @@ export function Dashboard() {
             className="data-[state=checked]:bg-primary"
           />
           <span
-            className={`transition-colors ${
-              userMode === "owner" ? "text-foreground" : "text-muted-foreground"
-            }`}
+            className={`transition-colors ${userMode === "owner" ? "text-foreground" : "text-muted-foreground"
+              }`}
           >
             Owner Mode
           </span>
@@ -233,15 +193,15 @@ export function Dashboard() {
                     </div>
                   </div>
                 </div>
-                
+
                 <div className="flex items-center justify-between">
                   <Badge className="bg-primary text-primary-foreground border-0 text-base px-3 py-1">
                     {job.budget}
                   </Badge>
-                  
+
                   {/* Prominent Distance Indicator */}
-                  <Badge 
-                    variant="outline" 
+                  <Badge
+                    variant="outline"
                     className="bg-blue-50 border-secondary text-secondary gap-1.5 px-3 py-1 text-sm font-semibold"
                   >
                     <MapPin className="h-3.5 w-3.5" />
@@ -324,7 +284,7 @@ export function Dashboard() {
           <Plus className="h-6 w-6" />
         </button>
       )}
-      
+
       <BottomNav />
     </div>
   );
