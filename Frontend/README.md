@@ -4,17 +4,17 @@ A comprehensive mobile-first job bidding platform designed for India's blue-coll
 
 ## 📱 Complete App Flow
 
-### 1. **Splash Screen** (`/`)
+<!-- ### 1. **Splash Screen** (`/`)
 - Animated entry screen with LabourHand branding
 - Auto-redirects to onboarding or dashboard based on session status
-- Bilingual taglines (English/Hindi)
+- Bilingual taglines (English/Hindi) -->
 
 ### 2. **Onboarding** (`/onboarding`)
 - Language selection (English/Hindi) with Skills India verification
 - Feature walkthrough showcasing key platform capabilities
 - Direct navigation to registration
 
-### 3. **Landing Page** (`/landing`) - Desktop Focused
+### 3. **Landing Page** (`/`) - Desktop Focused
 - Professional landing page for desktop users
 - Two-path signup: Workers and Employers
 - Feature showcase, how-it-works section, and stats
