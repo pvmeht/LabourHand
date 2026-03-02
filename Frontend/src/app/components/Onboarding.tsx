@@ -78,7 +78,7 @@ export function Onboarding() {
   };
 
   const handleSkip = () => {
-    navigate("/landing");
+    navigate("/");
   };
 
   // Language Selection Step

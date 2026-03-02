@@ -14,16 +14,16 @@ import { Messages } from "./components/Messages";
 import { CompareBids } from "./components/CompareBids";
 
 export const router = createBrowserRouter([
-  {
-    path: "/",
-    Component: Splash,
-  },
+  // {
+  //   path: "/",
+  //   Component: Splash,
+  // },
   {
     path: "/onboarding",
     Component: Onboarding,
   },
   {
-    path: "/landing",
+    path: "/",
     Component: Landing,
   },
   {
