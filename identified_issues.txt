@@ -1,0 +1,107 @@
+issues from start of frontend/backend
+1) 1st time user have to redirect to profile page to complete its some profile about 70-80% in current window if i am a person then why its showig hire now to me itlself  i only have to update my info in profile !
+2) remove all static data are we using and replace it with proper structure and apis from frntend 
+3) new project also not working 
+4) to show nearby places from Nearby Opportunities fetch from db and add km filter to it for proper work (add maps and dots(proper icons) to denote) use free widely use and modifiable maps uptodate info 
+5) to whom i can message we dont have logic there yet !
+6) identify issue at http://localhost:5174/project/1/bid as 
+ ```Unexpected Application Error!
+404 Not Found
+💿 Hey developer 👋
+
+You can provide a way better UX than this when your app throws errors by providing your own ErrorBoundary or errorElement prop on your route.```
+7) add adaptive size to UI some pages no need to scroll ! like we can manage register/ login page with without scroll 
+7) after login if i click on home its redirecting to landing page and need again to go login ; show a dashboard if login on home click 
+8) modernize navigation to responsive if like desktop then use modernize left floating / bottom floating navigation 
+9) we have some issue as 
+```GET http://localhost:8081/api/projects/nearby?lat=12.9716&lng=77.5946 403 (Forbidden)
+request @ api.ts:15
+getNearby @ api.ts:104
+(anonymous) @ Dashboard.tsx:35
+commitHookEffectListMount @ chunk-NXESFFTV.js?v=08a4fefd:16963
+commitPassiveMountOnFiber @ chunk-NXESFFTV.js?v=08a4fefd:18206
+commitPassiveMountEffects_complete @ chunk-NXESFFTV.js?v=08a4fefd:18179
+commitPassiveMountEffects_begin @ chunk-NXESFFTV.js?v=08a4fefd:18169
+commitPassiveMountEffects @ chunk-NXESFFTV.js?v=08a4fefd:18159
+flushPassiveEffectsImpl @ chunk-NXESFFTV.js?v=08a4fefd:19543
+flushPassiveEffects @ chunk-NXESFFTV.js?v=08a4fefd:19500
+performSyncWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18921
+flushSyncCallbacks @ chunk-NXESFFTV.js?v=08a4fefd:9166
+commitRootImpl @ chunk-NXESFFTV.js?v=08a4fefd:19485
+commitRoot @ chunk-NXESFFTV.js?v=08a4fefd:19330
+finishConcurrentRender @ chunk-NXESFFTV.js?v=08a4fefd:18858
+performConcurrentWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18768
+workLoop @ chunk-NXESFFTV.js?v=08a4fefd:197
+flushWork @ chunk-NXESFFTV.js?v=08a4fefd:176
+performWorkUntilDeadline @ chunk-NXESFFTV.js?v=08a4fefd:384Understand this error
+api.ts:15  GET http://localhost:8081/api/projects/nearby?lat=12.9716&lng=77.5946 403 (Forbidden)
+request @ api.ts:15
+getNearby @ api.ts:104
+(anonymous) @ Dashboard.tsx:35
+commitHookEffectListMount @ chunk-NXESFFTV.js?v=08a4fefd:16963
+invokePassiveEffectMountInDEV @ chunk-NXESFFTV.js?v=08a4fefd:18374
+invokeEffectsInDev @ chunk-NXESFFTV.js?v=08a4fefd:19754
+commitDoubleInvokeEffectsInDEV @ chunk-NXESFFTV.js?v=08a4fefd:19739
+flushPassiveEffectsImpl @ chunk-NXESFFTV.js?v=08a4fefd:19556
+flushPassiveEffects @ chunk-NXESFFTV.js?v=08a4fefd:19500
+performSyncWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18921
+flushSyncCallbacks @ chunk-NXESFFTV.js?v=08a4fefd:9166
+commitRootImpl @ chunk-NXESFFTV.js?v=08a4fefd:19485
+commitRoot @ chunk-NXESFFTV.js?v=08a4fefd:19330
+finishConcurrentRender @ chunk-NXESFFTV.js?v=08a4fefd:18858
+performConcurrentWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18768
+workLoop @ chunk-NXESFFTV.js?v=08a4fefd:197
+flushWork @ chunk-NXESFFTV.js?v=08a4fefd:176
+performWorkUntilDeadline @ chunk-NXESFFTV.js?v=08a4fefd:384Understand this error
+installHook.js:1 Error: HTTP 403
+    at request (api.ts:23:15)
+overrideMethod @ installHook.js:1
+Promise.catch
+(anonymous) @ Dashboard.tsx:35
+commitHookEffectListMount @ chunk-NXESFFTV.js?v=08a4fefd:16963
+commitPassiveMountOnFiber @ chunk-NXESFFTV.js?v=08a4fefd:18206
+commitPassiveMountEffects_complete @ chunk-NXESFFTV.js?v=08a4fefd:18179
+commitPassiveMountEffects_begin @ chunk-NXESFFTV.js?v=08a4fefd:18169
+commitPassiveMountEffects @ chunk-NXESFFTV.js?v=08a4fefd:18159
+flushPassiveEffectsImpl @ chunk-NXESFFTV.js?v=08a4fefd:19543
+flushPassiveEffects @ chunk-NXESFFTV.js?v=08a4fefd:19500
+performSyncWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18921
+flushSyncCallbacks @ chunk-NXESFFTV.js?v=08a4fefd:9166
+commitRootImpl @ chunk-NXESFFTV.js?v=08a4fefd:19485
+commitRoot @ chunk-NXESFFTV.js?v=08a4fefd:19330
+finishConcurrentRender @ chunk-NXESFFTV.js?v=08a4fefd:18858
+performConcurrentWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18768
+workLoop @ chunk-NXESFFTV.js?v=08a4fefd:197
+flushWork @ chunk-NXESFFTV.js?v=08a4fefd:176
+performWorkUntilDeadline @ chunk-NXESFFTV.js?v=08a4fefd:384Understand this error
+installHook.js:1 Error: HTTP 403
+    at request (api.ts:23:15)
+overrideMethod @ installHook.js:1
+Promise.catch
+(anonymous) @ Dashboard.tsx:35
+commitHookEffectListMount @ chunk-NXESFFTV.js?v=08a4fefd:16963
+invokePassiveEffectMountInDEV @ chunk-NXESFFTV.js?v=08a4fefd:18374
+invokeEffectsInDev @ chunk-NXESFFTV.js?v=08a4fefd:19754
+commitDoubleInvokeEffectsInDEV @ chunk-NXESFFTV.js?v=08a4fefd:19739
+flushPassiveEffectsImpl @ chunk-NXESFFTV.js?v=08a4fefd:19556
+flushPassiveEffects @ chunk-NXESFFTV.js?v=08a4fefd:19500
+performSyncWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18921
+flushSyncCallbacks @ chunk-NXESFFTV.js?v=08a4fefd:9166
+commitRootImpl @ chunk-NXESFFTV.js?v=08a4fefd:19485
+commitRoot @ chunk-NXESFFTV.js?v=08a4fefd:19330
+finishConcurrentRender @ chunk-NXESFFTV.js?v=08a4fefd:18858
+performConcurrentWorkOnRoot @ chunk-NXESFFTV.js?v=08a4fefd:18768
+workLoop @ chunk-NXESFFTV.js?v=08a4fefd:197
+flushWork @ chunk-NXESFFTV.js?v=08a4fefd:176
+performWorkUntilDeadline @ chunk-NXESFFTV.js?v=08a4fefd:384Understand this error```
+10) if i click on messages then after redirection showing errors as 
+```Messages.tsx:31 
+ GET http://localhost:8081/ws/info?t=1772740474521 net::ERR_FAILED 403 (Forbidden)
+
+messages:1 Access to XMLHttpRequest at 'http://localhost:8081/ws/info?t=1772740474529' from origin 'http://localhost:5174' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+Messages.tsx:31 
+ GET http://localhost:8081/ws/info?t=1772740474529 net::ERR_FAILED 403 (Forbidden)
+messages:1 Access to XMLHttpRequest at 'http://localhost:8081/ws/info?t=1772740474538' from origin 'http://localhost:5174' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.
+Messages.tsx:31 
+ GET http://localhost:8081/ws/info?t=1772740474538 net::ERR_FAILED 403 (Forbidden)
+messages:1 Access to XMLHttpRequest at 'http://localhost:8081/ws/info?t=1772740474546' from origin 'http://localhost:5174' has been blocked by CORS policy: No 'Access-Control-Allow-Origin' header is present on the requested resource.```
