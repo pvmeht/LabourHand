@@ -18,6 +18,8 @@ public class CorsConfig {
         // Allow Vite dev server and any other local origins
         configuration.setAllowedOriginPatterns(List.of(
                 "http://localhost:5173",
+                "http://localhost:5174",
+                "http://localhost:5175",
                 "http://localhost:3000",
                 "http://localhost:4173"));
         configuration.setAllowedMethods(Arrays.asList("GET", "POST", "PUT", "DELETE", "OPTIONS", "PATCH"));
