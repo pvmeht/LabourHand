@@ -1,7 +1,7 @@
 // LabourHand API Client
 // All API calls go through here. JWT token is auto-attached from localStorage.
 
-const BASE_URL = 'http://localhost:8080/api';
+const BASE_URL = 'http://localhost:8081/api';
 
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
