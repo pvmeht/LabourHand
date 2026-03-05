@@ -1,4 +1,5 @@
 import { createBrowserRouter } from "react-router";
+import { ProtectedRoute } from "./components/ProtectedRoute";
 import { Splash } from "./components/Splash";
 import { Onboarding } from "./components/Onboarding";
 import { Landing } from "./components/Landing";
@@ -14,17 +15,14 @@ import { Messages } from "./components/Messages";
 import { CompareBids } from "./components/CompareBids";
 
 export const router = createBrowserRouter([
-  // {
-  //   path: "/",
-  //   Component: Splash,
-  // },
-  {
-    path: "/onboarding",
-    Component: Onboarding,
-  },
+  // Public routes
   {
     path: "/",
     Component: Landing,
+  },
+  {
+    path: "/onboarding",
+    Component: Onboarding,
   },
   {
     path: "/login",
@@ -38,36 +36,42 @@ export const router = createBrowserRouter([
     path: "/auth",
     Component: Register,
   },
+  // Protected routes
   {
-    path: "/dashboard",
-    Component: Dashboard,
-  },
-  {
-    path: "/project/:id",
-    Component: ProjectDetails,
-  },
-  {
-    path: "/worker/:id",
-    Component: WorkerProfile,
-  },
-  {
-    path: "/bid/:projectId",
-    Component: PlaceBid,
-  },
-  {
-    path: "/contractor",
-    Component: ContractorDashboard,
-  },
-  {
-    path: "/my-bids",
-    Component: MyBids,
-  },
-  {
-    path: "/messages",
-    Component: Messages,
-  },
-  {
-    path: "/compare-bids/:projectId",
-    Component: CompareBids,
-  },
+    element: <ProtectedRoute />,
+    children: [
+      {
+        path: "/dashboard",
+        Component: Dashboard,
+      },
+      {
+        path: "/project/:id",
+        Component: ProjectDetails,
+      },
+      {
+        path: "/worker/:id",
+        Component: WorkerProfile,
+      },
+      {
+        path: "/bid/:projectId",
+        Component: PlaceBid,
+      },
+      {
+        path: "/contractor",
+        Component: ContractorDashboard,
+      },
+      {
+        path: "/my-bids",
+        Component: MyBids,
+      },
+      {
+        path: "/messages",
+        Component: Messages,
+      },
+      {
+        path: "/compare-bids/:projectId",
+        Component: CompareBids,
+      },
+    ]
+  }
 ]);

@@ -46,7 +46,10 @@ export function Login() {
         companyName: user.companyName,
         projectsPosted: user.projectsPosted,
       });
-      if (user.role === 'WORKER') {
+      const redirectPath = searchParams.get("redirect");
+      if (redirectPath) {
+        navigate(redirectPath);
+      } else if (user.role === 'WORKER') {
         navigate('/dashboard');
       } else {
         navigate('/contractor');
