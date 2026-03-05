@@ -27,6 +27,7 @@ G:\code\LabourHand\Backend\src\main\java\com\labourhand\service\AuthService.java
 G:\code\LabourHand\Backend\src\main\java\com\labourhand\controller\WorkerController.java
 G:\code\LabourHand\Backend\src\main\java\com\labourhand\repository\ConversationRepository.java
 G:\code\LabourHand\Backend\src\main\java\com\labourhand\service\ProjectService.java
+G:\code\LabourHand\Backend\src\main\java\com\labourhand\config\WebSocketConfig.java
 G:\code\LabourHand\Backend\src\main\java\com\labourhand\repository\BidRepository.java
 G:\code\LabourHand\Backend\src\main\java\com\labourhand\repository\CertificationRepository.java
 G:\code\LabourHand\Backend\src\main\java\com\labourhand\controller\ContractorController.java
