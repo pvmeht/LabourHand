@@ -23,6 +23,8 @@ import { projectApi, Project } from "../../utils/api";
 import { SessionManager } from "../../utils/session";
 import { ProjectMap } from "./ProjectMap";
 
+import { DesktopNav } from "./DesktopNav";
+
 export function Dashboard() {
   const [userMode, setUserMode] = useState<"worker" | "owner">("worker");
   const [language, setLanguage] = useState<"en" | "hi">("en");
@@ -77,7 +79,9 @@ export function Dashboard() {
   };
 
   return (
-    <div className="min-h-screen bg-muted pb-24">
+    <div className="flex bg-muted">
+      <DesktopNav />
+      <div className="flex-1 min-w-0 min-h-screen pb-24 md:pb-0">
       {/* Header with Profile */}
       <div className="bg-white border-b border-border sticky top-0 z-10">
         <div className="flex items-center justify-between max-w-screen-lg mx-auto p-4">
@@ -277,7 +281,7 @@ export function Dashboard() {
       {/* Floating Action Button (for Owner mode) */}
       {userMode === "owner" && (
         <button
-          className="fixed bottom-20 right-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-50"
+          className="fixed bottom-20 md:bottom-6 right-6 bg-primary hover:bg-primary/90 text-primary-foreground rounded-full p-4 shadow-lg hover:shadow-xl transition-all z-50"
           onClick={() => navigate("/contractor")}
         >
           <Plus className="h-6 w-6" />
@@ -285,6 +289,7 @@ export function Dashboard() {
       )}
 
       <BottomNav />
+      </div>
     </div>
   );
 }
