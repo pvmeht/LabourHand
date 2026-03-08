@@ -15,6 +15,7 @@ import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { BottomNav } from "./BottomNav";
 import { projectApi, bidApi, Project, Bid } from "../../utils/api";
+import { ProjectMap } from "./ProjectMap";
 
 export function ProjectDetails() {
   const navigate = useNavigate();
@@ -116,6 +117,14 @@ export function ProjectDetails() {
           </div>
 
           <p className="text-xs text-gray-400 mt-3">Posted {project.postedAt}</p>
+        </Card>
+
+        {/* Location Map */}
+        <Card className="overflow-hidden p-4">
+          <h3 className="font-semibold text-gray-900 mb-3">Project Location</h3>
+          <div className="h-48 w-full rounded-lg overflow-hidden relative z-0">
+             <ProjectMap projects={[project]} centerPos={project.lat && project.lng ? [project.lat, project.lng] : [12.9716, 77.5946]} />
+          </div>
         </Card>
 
         {/* Bids */}

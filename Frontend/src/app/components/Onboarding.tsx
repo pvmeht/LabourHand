@@ -1,14 +1,44 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Hammer, Languages, ArrowRight, CheckCircle, MapPin, User, Briefcase } from "lucide-react";
+import { Hammer, Languages, ArrowRight, CheckCircle, MapPin, User, Briefcase, Loader2 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import { Input } from "./ui/input";
+import { Label } from "./ui/label";
+import { Textarea } from "./ui/textarea";
 import { SessionManager } from "../../utils/session";
+import { userApi } from "../../utils/api";
+import { calculateProfileCompleteness } from "../../utils/profile";
 
 export function Onboarding() {
   const [language, setLanguage] = useState<'en' | 'hi'>('en');
+  // 0 = language, 1 = marketing, 2 = profile setup
   const [currentStep, setCurrentStep] = useState(0);
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
+  const currentUser = SessionManager.getCurrentUser();
+
+  // Profile Form State
+  const [formData, setFormData] = useState({
+    name: currentUser?.name || '',
+    phone: currentUser?.phone || '',
+    bio: (currentUser as any)?.bio || '',
+    specialization: (currentUser as any)?.specialization || '',
+    companyName: currentUser?.companyName || '',
+    skills: currentUser?.skills?.join(', ') || '',
+  });
+
+  // Skip marketing if user is already logged in but intercepted here
+  useEffect(() => {
+    if (currentUser) {
+      const score = calculateProfileCompleteness(currentUser);
+      if (score < 70) {
+        setCurrentStep(2); // Jump straight to profile setup
+      } else {
+        navigate(currentUser.role.toLowerCase() === 'worker' ? '/dashboard' : '/contractor');
+      }
+    }
+  }, [currentUser, navigate]);
 
   const content = {
     en: {
@@ -157,6 +187,88 @@ export function Onboarding() {
             {language === 'en' ? 'Skip' : 'छोड़ें'}
           </Button>
         </div>
+      </div>
+    );
+  }
+
+  // Setup Profile Step (For authenticated users missing data)
+  if (currentStep === 2 && currentUser) {
+    const handleSaveProfile = async (e: React.FormEvent) => {
+      e.preventDefault();
+      setLoading(true);
+      try {
+        const updates: any = {
+           name: formData.name,
+           phone: formData.phone,
+        };
+        if (currentUser.role.toLowerCase() === 'worker') {
+           updates.bio = formData.bio;
+           updates.specialization = formData.specialization;
+           updates.skills = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
+        } else {
+           updates.companyName = formData.companyName;
+        }
+
+        const updatedUser = await userApi.updateMe(updates);
+        // Coerce id to string since SessionManager expects string ID
+        SessionManager.updateUser({ ...updatedUser, id: String(updatedUser.id), role: updatedUser.role.toLowerCase() as any, language: updatedUser.language as 'en' | 'hi' | undefined });
+        
+        // Re-evaluate
+        navigate(currentUser.role.toLowerCase() === 'worker' ? '/dashboard' : '/contractor');
+      } catch (err) {
+        console.error("Failed to update profile", err);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    return (
+      <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 via-white to-secondary/5">
+        <Card className="w-full max-w-md p-8">
+          <div className="text-center mb-6">
+            <h2 className="text-2xl font-bold mb-2">Complete Your Profile</h2>
+            <p className="text-muted-foreground text-sm">
+              We need a few more details before you can continue to the platform.
+            </p>
+          </div>
+
+          <form onSubmit={handleSaveProfile} className="space-y-4">
+            <div>
+              <Label>Full Name</Label>
+              <Input required value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} className="mt-1" />
+            </div>
+            <div>
+              <Label>Phone Number</Label>
+              <Input required value={formData.phone} onChange={e => setFormData({...formData, phone: e.target.value})} className="mt-1" />
+            </div>
+
+            {currentUser.role.toLowerCase() === 'worker' ? (
+              <>
+                <div>
+                  <Label>Specialization (e.g. Senior Mason, Electrician)</Label>
+                  <Input required value={formData.specialization} onChange={e => setFormData({...formData, specialization: e.target.value})} className="mt-1" />
+                </div>
+                <div>
+                  <Label>Skills (Comma separated)</Label>
+                  <Input required placeholder="Plumbing, Wiring, Tiling" value={formData.skills} onChange={e => setFormData({...formData, skills: e.target.value})} className="mt-1" />
+                </div>
+                <div>
+                  <Label>Short Bio</Label>
+                  <Textarea required placeholder="Tell clients about your experience..." value={formData.bio} onChange={e => setFormData({...formData, bio: e.target.value})} className="mt-1" />
+                </div>
+              </>
+            ) : (
+                <div>
+                  <Label>Company Name</Label>
+                  <Input required value={formData.companyName} onChange={e => setFormData({...formData, companyName: e.target.value})} className="mt-1" />
+                </div>
+            )}
+
+            <Button type="submit" className="w-full h-11 mt-6" disabled={loading}>
+              {loading ? <Loader2 className="animate-spin h-5 w-5 mr-2" /> : "Save Profile & Continue"}
+            </Button>
+          </form>
+        </Card>
       </div>
     );
   }

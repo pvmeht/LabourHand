@@ -85,8 +85,8 @@ export function Register() {
   };
 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-secondary/5 flex items-center justify-center p-4">
-      <div className="w-full max-w-md">
+    <div className="h-[100dvh] bg-gradient-to-br from-primary/5 via-white to-secondary/5 flex flex-col items-center justify-center p-4 overflow-hidden">
+      <div className="w-full max-w-md flex flex-col h-full py-4">
         {/* Back Button */}
         <Button
           variant="ghost"
@@ -97,7 +97,7 @@ export function Register() {
           Back
         </Button>
 
-        <Card className="p-8">
+        <Card className="p-6 md:p-8 flex-1 overflow-y-auto min-h-0 no-scrollbar">
           {/* Logo */}
           <div className="text-center mb-8">
             <div className="bg-primary rounded-full p-4 shadow-lg inline-block mb-4">

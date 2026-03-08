@@ -6,6 +6,7 @@ import com.labourhand.repository.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
+import org.springframework.messaging.simp.SimpMessagingTemplate;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -19,6 +20,7 @@ public class MessageService {
     private final UserRepository userRepository;
     private final ProjectRepository projectRepository;
     private final UserService userService;
+    private final SimpMessagingTemplate messagingTemplate;
 
     /**
      * All conversations for the current user, enriched with last message + unread
@@ -57,7 +59,13 @@ public class MessageService {
                 .senderId(sender.getId())
                 .content(req.getContent())
                 .build();
-        return toMessageResponse(messageRepository.save(msg));
+        MessageDto.MessageResponse response = toMessageResponse(messageRepository.save(msg));
+
+        // Broadcast to both receiver and sender over WebSockets
+        messagingTemplate.convertAndSend("/topic/messages/" + req.getReceiverId(), response);
+        messagingTemplate.convertAndSend("/topic/messages/" + sender.getId(), response);
+
+        return response;
     }
 
     @Transactional

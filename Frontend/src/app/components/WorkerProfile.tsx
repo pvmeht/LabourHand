@@ -1,3 +1,4 @@
+import { useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router";
 import {
   ArrowLeft,
@@ -7,30 +8,46 @@ import {
   Award,
   Briefcase,
   Calendar,
+  Edit,
 } from "lucide-react";
 import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { BottomNav } from "./BottomNav";
+import { userApi, AuthUser } from "../../utils/api";
+import { SessionManager } from "../../utils/session";
 
 export function WorkerProfile() {
   const navigate = useNavigate();
   const { id } = useParams();
+  const [worker, setWorker] = useState<AuthUser | null>(null);
+  const [loading, setLoading] = useState(true);
 
-  const worker = {
-    id: id || "1",
-    name: "Rajesh Kumar",
-    specialization: "Senior Mason",
-    yearsOfExperience: 15,
-    rating: 4.8,
-    completedJobs: 127,
-    location: "Bangalore, Karnataka",
-    verified: true,
-    skillsIndiaVerified: true,
-    avatar: "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop",
-    bio: "Experienced mason specializing in brick-laying, tiling, and concrete work. Committed to delivering high-quality craftsmanship on every project.",
-  };
+  const currentUser = SessionManager.getCurrentUser();
+  const isSelfProfile = currentUser && currentUser.id === String(id);
+
+  useEffect(() => {
+    if (id) {
+      userApi.getById(Number(id))
+        .then(u => {
+          setWorker(u);
+          setLoading(false);
+        })
+        .catch(err => {
+          console.error(err);
+          setLoading(false);
+        });
+    }
+  }, [id]);
+
+  if (loading) {
+    return <div className="min-h-screen flex items-center justify-center">Loading profile...</div>;
+  }
+
+  if (!worker) {
+    return <div className="min-h-screen flex items-center justify-center">Worker not found.</div>;
+  }
 
   const skills = [
     "Brick-laying",
@@ -133,28 +150,31 @@ export function WorkerProfile() {
                 )}
               </div>
               <div className="flex flex-wrap items-center gap-3 mb-3">
-                <Badge
-                  variant="secondary"
-                  className="bg-accent text-accent-foreground"
-                >
-                  {worker.specialization}
-                </Badge>
+                {worker.specialization && (
+                  <Badge
+                    variant="secondary"
+                    className="bg-accent text-accent-foreground"
+                  >
+                    {worker.specialization}
+                  </Badge>
+                )}
                 <div className="flex items-center gap-1 text-sm">
                   <Briefcase className="h-4 w-4 text-muted-foreground" />
-                  <span>{worker.yearsOfExperience} years experience</span>
+                  <span>{worker.yearsExperience || 0} years experience</span>
                 </div>
               </div>
               <div className="flex flex-wrap items-center gap-4 text-sm text-muted-foreground mb-3">
                 <div className="flex items-center gap-1">
                   <Star className="h-5 w-5 fill-yellow-400 text-yellow-400" />
                   <span className="font-bold text-foreground text-base">
-                    {worker.rating}
+                    {worker.rating || "New"}
                   </span>
-                  <span className="ml-1">({worker.completedJobs} jobs)</span>
+                  <span className="ml-1">({worker.completedJobs || 0} jobs)</span>
                 </div>
+                {/* Fallback Location Logic */}
                 <div className="flex items-center gap-1">
                   <MapPin className="h-4 w-4" />
-                  <span>{worker.location}</span>
+                  <span>Bangalore, Karnataka</span>
                 </div>
               </div>
               {worker.skillsIndiaVerified && (
@@ -168,33 +188,44 @@ export function WorkerProfile() {
             </div>
           </div>
 
-          <p className="text-muted-foreground mb-4">{worker.bio}</p>
+          <p className="text-muted-foreground mb-4">{worker.bio || "No biography provided yet."}</p>
 
           <div className="flex gap-2">
-            <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-11">
-              Hire Now
-            </Button>
-            <Button variant="outline" className="h-11 px-6">
-              Message
-            </Button>
+            {isSelfProfile ? (
+               <Button className="flex-1 bg-muted text-foreground hover:bg-muted/80 h-11 border" onClick={() => navigate('/onboarding')}>
+                 <Edit className="h-4 w-4 mr-2" />
+                 Edit Profile
+               </Button>
+            ) : (
+                <>
+                    <Button className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground h-11">
+                    Hire Now
+                    </Button>
+                    <Button variant="outline" className="h-11 px-6">
+                    Message
+                    </Button>
+                </>
+            )}
           </div>
         </Card>
 
         {/* Skills Section */}
-        <Card className="p-5">
-          <h3 className="mb-3">Skills & Expertise</h3>
-          <div className="flex flex-wrap gap-2">
-            {skills.map((skill, index) => (
-              <Badge
-                key={index}
-                variant="outline"
-                className="px-3 py-1.5 text-sm border-primary/30 bg-accent"
-              >
-                {skill}
-              </Badge>
-            ))}
-          </div>
-        </Card>
+        {worker.skills && worker.skills.length > 0 && (
+            <Card className="p-5">
+            <h3 className="mb-3">Skills & Expertise</h3>
+            <div className="flex flex-wrap gap-2">
+                {worker.skills.map((skill, index) => (
+                <Badge
+                    key={index}
+                    variant="outline"
+                    className="px-3 py-1.5 text-sm border-primary/30 bg-accent"
+                >
+                    {skill}
+                </Badge>
+                ))}
+            </div>
+            </Card>
+        )}
 
         {/* Certifications */}
         <Card className="p-5">
@@ -279,20 +310,20 @@ export function WorkerProfile() {
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
             <div className="text-center p-3 bg-accent rounded-lg">
               <p className="text-2xl font-bold text-primary">
-                {worker.completedJobs}
+                {worker.completedJobs || 0}
               </p>
               <p className="text-sm text-muted-foreground">Projects Done</p>
             </div>
             <div className="text-center p-3 bg-accent rounded-lg">
-              <p className="text-2xl font-bold text-primary">{worker.rating}</p>
+              <p className="text-2xl font-bold text-primary">{worker.rating || "N/A"}</p>
               <p className="text-sm text-muted-foreground">Avg Rating</p>
             </div>
             <div className="text-center p-3 bg-accent rounded-lg">
-              <p className="text-2xl font-bold text-primary">98%</p>
+              <p className="text-2xl font-bold text-primary">{worker.onTimeRate || 100}%</p>
               <p className="text-sm text-muted-foreground">On-Time Rate</p>
             </div>
             <div className="text-center p-3 bg-accent rounded-lg">
-              <p className="text-2xl font-bold text-primary">95%</p>
+              <p className="text-2xl font-bold text-primary">{worker.rehireRate || 0}%</p>
               <p className="text-sm text-muted-foreground">Rehire Rate</p>
             </div>
           </div>
