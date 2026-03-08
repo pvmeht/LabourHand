@@ -6,7 +6,16 @@ const BASE_URL = 'http://localhost:8081/api';
 type Method = 'GET' | 'POST' | 'PUT' | 'DELETE' | 'PATCH';
 
 async function request<T>(method: Method, path: string, body?: unknown): Promise<T> {
-    const token = localStorage.getItem('labourhand_token');
+    const sessionStr = localStorage.getItem('labourhand_session');
+    let token = null;
+    if (sessionStr) {
+        try {
+            token = JSON.parse(sessionStr).token;
+        } catch (e) {
+            console.error("Error parsing session string", e);
+        }
+    }
+
     const headers: Record<string, string> = {
         'Content-Type': 'application/json',
     };
@@ -100,8 +109,8 @@ export interface Project {
 
 export const projectApi = {
     getAll: () => request<Project[]>('GET', '/projects'),
-    getNearby: (lat = 12.9716, lng = 77.5946) =>
-        request<Project[]>('GET', `/projects/nearby?lat=${lat}&lng=${lng}`),
+    getNearby: (lat = 12.9716, lng = 77.5946, radius = 10.0) =>
+        request<Project[]>('GET', `/projects/nearby?lat=${lat}&lng=${lng}&radius=${radius}`),
     getByCategory: (cat: string) => request<Project[]>('GET', `/projects/category/${cat}`),
     getMyProjects: () => request<Project[]>('GET', '/projects/my'),
     getById: (id: number | string) => request<Project>('GET', `/projects/${id}`),
