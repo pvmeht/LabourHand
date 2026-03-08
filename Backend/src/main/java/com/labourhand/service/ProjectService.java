@@ -29,9 +29,9 @@ public class ProjectService {
                 .collect(Collectors.toList());
     }
 
-    public List<ProjectDto.Response> getNearbyProjects(double lat, double lng) {
+    public List<ProjectDto.Response> getNearbyProjects(double lat, double lng, double radius) {
         // Uses native Haversine query; rows are [project columns..., distance]
-        List<Object[]> rows = projectRepository.findNearbyProjectsRaw(lat, lng);
+        List<Object[]> rows = projectRepository.findNearbyProjectsRaw(lat, lng, radius);
         return rows.stream().map(row -> {
             Long id = ((Number) row[0]).longValue();
             Project p = projectRepository.findById(id).orElse(null);
