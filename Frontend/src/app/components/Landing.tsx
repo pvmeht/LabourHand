@@ -1,10 +1,23 @@
+import { useEffect } from "react";
 import { useNavigate } from "react-router";
 import { Hammer, MapPin, TrendingUp, Shield, Users, CheckCircle, ArrowRight, Briefcase, User } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
+import { SessionManager } from "../../utils/session";
 
 export function Landing() {
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const currentUser = SessionManager.getCurrentUser();
+    if (currentUser) {
+      if (currentUser.role.toLowerCase() === 'worker') {
+        navigate('/dashboard');
+      } else {
+        navigate('/contractor');
+      }
+    }
+  }, [navigate]);
 
   return (
     <div className="min-h-screen bg-white">

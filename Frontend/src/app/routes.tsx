@@ -12,6 +12,7 @@ import { PlaceBid } from "./components/PlaceBid";
 import { ContractorDashboard } from "./components/ContractorDashboard";
 import { MyBids } from "./components/MyBids";
 import { Messages } from "./components/Messages";
+import { MessageThread } from "./components/MessageThread";
 import { CompareBids } from "./components/CompareBids";
 
 export const router = createBrowserRouter([
@@ -53,7 +54,7 @@ export const router = createBrowserRouter([
         Component: WorkerProfile,
       },
       {
-        path: "/bid/:projectId",
+        path: "/project/:projectId/bid",
         Component: PlaceBid,
       },
       {
@@ -67,6 +68,10 @@ export const router = createBrowserRouter([
       {
         path: "/messages",
         Component: Messages,
+      },
+      {
+        path: "/messages/:id",
+        Component: MessageThread,
       },
       {
         path: "/compare-bids/:projectId",

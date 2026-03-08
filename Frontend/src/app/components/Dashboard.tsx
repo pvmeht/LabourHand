@@ -21,6 +21,7 @@ import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { BottomNav } from "./BottomNav";
 import { projectApi, Project } from "../../utils/api";
 import { SessionManager } from "../../utils/session";
+import { ProjectMap } from "./ProjectMap";
 
 export function Dashboard() {
   const [userMode, setUserMode] = useState<"worker" | "owner">("worker");
@@ -30,10 +31,21 @@ export function Dashboard() {
   const [loading, setLoading] = useState(true);
   const currentUser = SessionManager.getCurrentUser();
 
+  const [radius, setRadius] = useState<number>(10);
+
   useEffect(() => {
     if (currentUser) setUserMode(currentUser.role as 'worker' | 'owner');
-    projectApi.getNearby().then(setNearbyOpportunities).catch(console.error).finally(() => setLoading(false));
+    fetchProjects();
   }, []);
+
+  useEffect(() => {
+    fetchProjects();
+  }, [radius]);
+
+  const fetchProjects = () => {
+    setLoading(true);
+    projectApi.getNearby(12.9716, 77.5946, radius).then(setNearbyOpportunities).catch(console.error).finally(() => setLoading(false));
+  };
 
   const jobCategories = [
     { id: 1, name: "Construction", icon: Hammer, color: "bg-orange-100" },
@@ -129,44 +141,31 @@ export function Dashboard() {
       <div className="max-w-screen-lg mx-auto p-4 space-y-6">
         {/* Nearby Opportunities Map */}
         <div>
-          <h3 className="mb-3">Nearby Opportunities</h3>
+          <div className="flex justify-between items-center mb-3">
+            <h3>Nearby Opportunities</h3>
+            <div className="flex items-center gap-2">
+              <span className="text-sm font-medium">Radius:</span>
+              <input
+                type="range"
+                min="1"
+                max="50"
+                value={radius}
+                onChange={(e) => setRadius(Number(e.target.value))}
+                className="w-24 accent-primary"
+              />
+              <span className="text-sm text-muted-foreground w-12">{radius} km</span>
+            </div>
+          </div>
           <Card className="overflow-hidden">
-            {/* Mock Map View */}
-            <div className="relative bg-gradient-to-br from-blue-50 to-green-50 h-64">
-              {/* Map placeholder with pins */}
-              <div className="absolute inset-0 flex items-center justify-center">
-                <div className="text-center space-y-2">
-                  <MapPin className="h-12 w-12 text-primary mx-auto" />
-                  <p className="text-sm text-muted-foreground px-4">
-                    Interactive map showing nearby job opportunities
-                  </p>
-                </div>
-              </div>
-              {/* Location Pins */}
-              {nearbyOpportunities.map((opp, idx) => (
-                <div
-                  key={opp.id}
-                  className="absolute animate-bounce"
-                  style={{
-                    top: `${30 + idx * 20}%`,
-                    left: `${25 + idx * 25}%`,
-                    animationDelay: `${idx * 200}ms`,
-                  }}
-                >
-                  <button
-                    onClick={() => navigate(`/project/${opp.id}`)}
-                    className="relative group"
-                  >
-                    <MapPin className="h-8 w-8 text-primary fill-primary drop-shadow-lg" />
-                    <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-2 hidden group-hover:block">
-                      <div className="bg-white rounded-lg shadow-lg p-2 text-xs whitespace-nowrap">
-                        <p className="font-semibold">{opp.title}</p>
-                        <p className="text-muted-foreground">{opp.budget}</p>
-                      </div>
-                    </div>
-                  </button>
-                </div>
-              ))}
+            {/* Real React-Leaflet Map View */}
+            <div className="relative h-64 z-0">
+               {loading ? (
+                   <div className="flex bg-gray-50 items-center justify-center w-full h-full text-muted-foreground">
+                       Loading Map...
+                   </div>
+               ) : (
+                   <ProjectMap projects={nearbyOpportunities} centerPos={[12.9716, 77.5946]} />
+               )}
             </div>
           </Card>
         </div>
@@ -205,7 +204,7 @@ export function Dashboard() {
                     className="bg-blue-50 border-secondary text-secondary gap-1.5 px-3 py-1 text-sm font-semibold"
                   >
                     <MapPin className="h-3.5 w-3.5" />
-                    {job.distance} away
+                    {job.distanceKm !== undefined ? job.distanceKm.toFixed(1) : '?'} km away
                   </Badge>
                 </div>
               </Card>
