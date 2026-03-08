@@ -22,6 +22,7 @@ export function BottomNav() {
   return (
     <div className="md:hidden fixed bottom-0 left-0 right-0 bg-white border-t border-border z-50 safe-area-bottom">
       <div className="max-w-screen-lg mx-auto px-2">
+        
         <div className="grid grid-cols-4 gap-1">
           {navItems.map((item) => {
             const Icon = item.icon;
