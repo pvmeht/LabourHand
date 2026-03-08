@@ -8,6 +8,7 @@ import { Input } from "./ui/input";
 import { messageApi, ApiMessage, Conversation } from "../../utils/api";
 import { SessionManager } from "../../utils/session";
 
+
 export function MessageThread() {
   const { id } = useParams();
   const navigate = useNavigate();
