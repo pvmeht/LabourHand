@@ -96,6 +96,7 @@ export function Register() {
           <ArrowLeft className="h-4 w-4 mr-2" />
           Back
         </Button>
+        
 
         <Card className="p-6 md:p-8 flex-1 overflow-y-auto min-h-0 no-scrollbar">
           {/* Logo */}
