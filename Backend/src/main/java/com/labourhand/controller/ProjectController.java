@@ -24,8 +24,9 @@ public class ProjectController {
     @GetMapping("/nearby")
     public ResponseEntity<List<ProjectDto.Response>> getNearby(
             @RequestParam(defaultValue = "12.9716") double lat,
-            @RequestParam(defaultValue = "77.5946") double lng) {
-        return ResponseEntity.ok(projectService.getNearbyProjects(lat, lng));
+            @RequestParam(defaultValue = "77.5946") double lng,
+            @RequestParam(defaultValue = "10.0") double radius) {
+        return ResponseEntity.ok(projectService.getNearbyProjects(lat, lng, radius));
     }
 
     @GetMapping("/my")
