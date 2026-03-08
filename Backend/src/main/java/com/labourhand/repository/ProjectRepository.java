@@ -28,8 +28,9 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
             ) AS distance
             FROM projects
             WHERE status = 'OPEN_FOR_BIDS'
+            HAVING distance <= :radius
             ORDER BY distance ASC
             LIMIT 50
             """, nativeQuery = true)
-    List<Object[]> findNearbyProjectsRaw(@Param("lat") double lat, @Param("lng") double lng);
+    List<Object[]> findNearbyProjectsRaw(@Param("lat") double lat, @Param("lng") double lng, @Param("radius") double radius);
 }
