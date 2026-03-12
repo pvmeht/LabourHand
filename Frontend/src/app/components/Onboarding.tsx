@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router";
-import { Hammer, Languages, ArrowRight, CheckCircle, MapPin, User, Briefcase, Loader2 } from "lucide-react";
+import { Hammer, Languages, ArrowRight, CheckCircle, MapPin, User, Briefcase, Loader2, ChevronLeft } from "lucide-react";
 import { Button } from "./ui/button";
 import { Card } from "./ui/card";
 import { Input } from "./ui/input";
@@ -186,6 +186,13 @@ export function Onboarding() {
           >
             {language === 'en' ? 'Skip' : 'छोड़ें'}
           </Button>
+
+          <button
+            onClick={() => navigate("/auth")}
+            className="w-full text-gray-500 hover:text-gray-800 transition-colors py-2 text-sm"
+          >
+            {language === 'en' ? 'Already have an account? Sign In' : 'पहले से खाता है? साइन इन करें'}
+          </button>
         </div>
       </div>
     );
@@ -197,31 +204,46 @@ export function Onboarding() {
       e.preventDefault();
       setLoading(true);
       try {
+        // Force lowercase check to match your conditional
+        const isWorker = currentUser.role.toUpperCase() === 'WORKER';
+
         const updates: any = {
-           name: formData.name,
-           phone: formData.phone,
+          name: formData.name,
+          phone: formData.phone,
         };
-        if (currentUser.role.toLowerCase() === 'worker') {
-           updates.bio = formData.bio;
-           updates.specialization = formData.specialization;
-           updates.skills = formData.skills.split(',').map(s => s.trim()).filter(Boolean);
+
+        if (isWorker) {
+          updates.bio = formData.bio;
+          updates.specialization = formData.specialization;
+          // TRICK: Ensure it's a clean array with no empty strings
+          const skillsArray = formData.skills
+            .split(',')
+            .map(s => s.trim())
+            .filter(s => s.length > 0);
+          
+          updates.skills = skillsArray;
         } else {
-           updates.companyName = formData.companyName;
+          updates.companyName = formData.companyName;
         }
 
+        console.log("SENDING TO SERVER:", updates); // CHECK THIS IN CONSOLE
         const updatedUser = await userApi.updateMe(updates);
-        // Coerce id to string since SessionManager expects string ID
-        SessionManager.updateUser({ ...updatedUser, id: String(updatedUser.id), role: updatedUser.role.toLowerCase() as any, language: updatedUser.language as 'en' | 'hi' | undefined });
         
-        // Re-evaluate
-        navigate(currentUser.role.toLowerCase() === 'worker' ? '/dashboard' : '/contractor');
+        // Update local session
+        SessionManager.updateUser({ 
+            ...updatedUser, 
+            id: String(updatedUser.id) 
+        });
+
+        // FORCE RELOAD to clear any stale state
+        window.location.href = isWorker ? '/dashboard' : '/contractor';
+        
       } catch (err) {
         console.error("Failed to update profile", err);
       } finally {
         setLoading(false);
       }
     };
-
     return (
       <div className="min-h-screen bg-muted flex flex-col items-center justify-center p-6 bg-gradient-to-br from-primary/5 via-white to-secondary/5">
         <Card className="w-full max-w-md p-8">
@@ -276,6 +298,17 @@ export function Onboarding() {
   // Features Walkthrough
   return (
     <div className="min-h-screen bg-gradient-to-br from-primary/5 via-white to-secondary/5 flex flex-col">
+      {/* Back Button Header */}
+      <div className="flex items-center px-4 pt-4">
+        <button
+          onClick={() => setCurrentStep(0)}
+          className="flex items-center gap-1 text-gray-500 hover:text-gray-900 transition-colors py-2 pr-2"
+        >
+          <ChevronLeft className="h-5 w-5" />
+          <span className="text-sm">{language === 'hi' ? 'वापस' : 'Back'}</span>
+        </button>
+      </div>
+
       {/* Header */}
       <div className="p-6 text-center">
         <div className="bg-primary rounded-full p-4 shadow-lg inline-block mb-4">
