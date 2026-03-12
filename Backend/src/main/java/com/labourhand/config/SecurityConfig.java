@@ -37,6 +37,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // Public auth endpoints
                         .requestMatchers("/api/auth/**").permitAll()
+                        // Internal error dispatches
+                        .requestMatchers("/error").permitAll()
                         // Public read-only skills
                         .requestMatchers(HttpMethod.GET, "/api/skills").permitAll()
                         // Everything else requires authentication
