@@ -23,10 +23,10 @@ const USER_KEY = 'labourhand_user';
 
 export class SessionManager {
   // Create a new session
-  static createSession(user: User): void {
+  static createSession(user: User, customToken?: string): void {
     const sessionData = {
       user,
-      token: this.generateToken(),
+      token: customToken || this.generateToken(),
       createdAt: new Date().toISOString(),
       expiresAt: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(), // 7 days
     };

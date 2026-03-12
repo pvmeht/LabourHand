@@ -53,7 +53,7 @@ export function Register() {
     try {
       const { token, user } = await authApi.register({
         name: formData.name,
-        email: formData.email,
+        email: formData.email.trim(),
         phone: formData.phone,
         password: formData.password,
         role: formData.role === 'owner' ? 'OWNER' : 'WORKER',
@@ -71,7 +71,7 @@ export function Register() {
         language: (user.language as 'en' | 'hi') || 'en',
         skills: user.skills,
         companyName: user.companyName,
-      });
+      }, token);
       if (user.role === 'WORKER') {
         navigate('/dashboard');
       } else {

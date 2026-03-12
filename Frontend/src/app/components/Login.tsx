@@ -27,7 +27,7 @@ export function Login() {
     setLoading(true);
 
     try {
-      const { token, user } = await authApi.login(formData.email, formData.password);
+      const { token, user } = await authApi.login(formData.email.trim(), formData.password);
       // Persist JWT for API client
       localStorage.setItem('labourhand_token', token);
       // Map backend user to session shape
@@ -45,7 +45,7 @@ export function Login() {
         completedJobs: user.completedJobs,
         companyName: user.companyName,
         projectsPosted: user.projectsPosted,
-      });
+      }, token);
       const redirectPath = searchParams.get("redirect");
       if (redirectPath) {
         navigate(redirectPath);
