@@ -84,4 +84,5 @@ com\labourhand\service\WorkerService.class
 com\labourhand\repository\SkillRepository.class
 com\labourhand\model\Skill.class
 com\labourhand\repository\ScheduleEventRepository.class
+com\labourhand\config\WebSocketConfig.class
 com\labourhand\repository\MessageRepository.class
