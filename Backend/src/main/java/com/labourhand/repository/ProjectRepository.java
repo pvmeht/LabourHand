@@ -19,15 +19,15 @@ public interface ProjectRepository extends JpaRepository<Project, Long> {
     // Returns all open projects sorted by distance from given lat/lng (Haversine
     // approximation). Guards against NULL lat/lng to prevent ACOS math errors.
     @Query(value = """
-            SELECT * FROM (
-                SELECT *, (
+            SELECT id, distance FROM (
+                SELECT id, 
                     6371 * ACOS(
                         LEAST(1.0, GREATEST(-1.0,
                             COS(RADIANS(:lat)) * COS(RADIANS(lat)) *
                             COS(RADIANS(lng) - RADIANS(:lng)) +
                             SIN(RADIANS(:lat)) * SIN(RADIANS(lat))
                         ))
-                ) AS distance
+                    ) AS distance
                 FROM projects
                 WHERE status = 'OPEN_FOR_BIDS'
                   AND lat IS NOT NULL
