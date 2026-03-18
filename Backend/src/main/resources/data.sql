@@ -16,31 +16,31 @@ INSERT INTO skills (name) VALUES
 -- ============================================================
 INSERT INTO users (name, email, phone, password_hash, role, avatar, verified, language, created_at) VALUES
   ('Rajesh Kumar',  'rajesh@labourhand.com', '+91 9876543210',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LjTa6T8AfVC',
+   '$2a$10$mf28BKyvxe.wXkPbylHewOeGB6i4k1FRE6KXIlHiKcYA7LTXd0eRy',
    'WORKER',
    'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=200&h=200&fit=crop',
    true, 'en', NOW()),
 
   ('Amit Patel',    'amit@labourhand.com',   '+91 9876543211',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LjTa6T8AfVC',
+   '$2a$10$mf28BKyvxe.wXkPbylHewOeGB6i4k1FRE6KXIlHiKcYA7LTXd0eRy',
    'WORKER',
    'https://images.unsplash.com/photo-1506794778202-cad84cf45f1d?w=200&h=200&fit=crop',
    true, 'en', NOW()),
 
   ('Suresh Singh',  'suresh@labourhand.com', '+91 9876543212',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LjTa6T8AfVC',
+   '$2a$10$mf28BKyvxe.wXkPbylHewOeGB6i4k1FRE6KXIlHiKcYA7LTXd0eRy',
    'WORKER',
    'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=200&h=200&fit=crop',
    true, 'en', NOW()),
 
   ('Vijay Kumar',   'vijay@labourhand.com',  '+91 9876543213',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LjTa6T8AfVC',
+   '$2a$10$mf28BKyvxe.wXkPbylHewOeGB6i4k1FRE6KXIlHiKcYA7LTXd0eRy',
    'WORKER',
    'https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=200&h=200&fit=crop',
    false, 'en', NOW()),
 
   ('Ravi Sharma',   'ravi@labourhand.com',   '+91 9876543214',
-   '$2a$10$N9qo8uLOickgx2ZMRZoMyeIjZAgcfl7p92ldGxad68LjTa6T8AfVC',
+   '$2a$10$mf28BKyvxe.wXkPbylHewOeGB6i4k1FRE6KXIlHiKcYA7LTXd0eRy',
    'WORKER',
    'https://images.unsplash.com/photo-1519345182560-3f2917c472ef?w=200&h=200&fit=crop',
    false, 'en', NOW());
@@ -50,13 +50,13 @@ INSERT INTO users (name, email, phone, password_hash, role, avatar, verified, la
 -- ============================================================
 INSERT INTO users (name, email, phone, password_hash, role, avatar, verified, language, created_at) VALUES
   ('Priya Sharma',  'priya@labourhand.com',  '+91 9876543215',
-   '$2a$10$8K1p/a0dR1xqM4aaRobKReAowQs.C72K95K6FHyZn2S2M7yDMsJxi',
+   '$2a$10$yOiLsm0BT8vsqzS7m4xFp.yrvxRFrIcFmd.HwqiFvOEGi6lsN8eoi',
    'OWNER',
    'https://images.unsplash.com/photo-1494790108377-be9c29b29330?w=200&h=200&fit=crop',
    true, 'en', NOW()),
 
   ('Arjun Mehta',   'arjun@labourhand.com',  '+91 9876543216',
-   '$2a$10$8K1p/a0dR1xqM4aaRobKReAowQs.C72K95K6FHyZn2S2M7yDMsJxi',
+   '$2a$10$yOiLsm0BT8vsqzS7m4xFp.yrvxRFrIcFmd.HwqiFvOEGi6lsN8eoi',
    'OWNER',
    'https://images.unsplash.com/photo-1599566150163-29194dcaad36?w=200&h=200&fit=crop',
    true, 'en', NOW());

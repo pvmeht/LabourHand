@@ -30,4 +30,4 @@ server:
 logging:
   level:
     com.labourhand: DEBUG
-    org.springframework.security: WARN
+    org.springframework.security: TRACE

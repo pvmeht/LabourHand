@@ -23,4 +23,16 @@ public class AuthController {
     public ResponseEntity<AuthDto.AuthResponse> login(@Valid @RequestBody AuthDto.LoginRequest req) {
         return ResponseEntity.ok(authService.login(req));
     }
+
+    @ExceptionHandler(org.springframework.security.core.AuthenticationException.class)
+    public ResponseEntity<String> handleAuthEx(org.springframework.security.core.AuthenticationException ex) {
+        ex.printStackTrace();
+        return ResponseEntity.status(401).body("Authentication failed: " + ex.getMessage());
+    }
+
+    @ExceptionHandler(Exception.class)
+    public ResponseEntity<String> handleEx(Exception ex) {
+        ex.printStackTrace();
+        return ResponseEntity.status(500).body("Internal error: " + ex.getMessage());
+    }
 }
