@@ -6,7 +6,7 @@ import { Card } from "./ui/card";
 import { Badge } from "./ui/badge";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { BottomNav } from "./BottomNav";
+
 
 export function CompareBids() {
   const navigate = useNavigate();
@@ -327,7 +327,7 @@ export function CompareBids() {
         </Tabs>
       </div>
 
-      <BottomNav />
+      
     </div>
   );
 }

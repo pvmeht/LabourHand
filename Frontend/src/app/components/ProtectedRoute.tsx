@@ -1,4 +1,5 @@
 import { Navigate, Outlet, useLocation } from "react-router";
+import { BottomNav } from "./BottomNav";
 import { SessionManager } from "../../utils/session";
 import { calculateProfileCompleteness } from "../../utils/profile";
 
@@ -21,5 +22,10 @@ export function ProtectedRoute() {
   }
 
   // If authenticated and complete, render child routes (via Outlet)
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <BottomNav />
+    </>
+  );
 }

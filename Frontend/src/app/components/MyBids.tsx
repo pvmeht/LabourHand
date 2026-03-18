@@ -4,7 +4,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "./ui/tabs";
-import { BottomNav } from "./BottomNav";
+
 
 export function MyBids() {
   const navigate = useNavigate();
@@ -237,7 +237,7 @@ export function MyBids() {
         </Tabs>
       </div>
 
-      <BottomNav />
+      
     </div>
   );
 }

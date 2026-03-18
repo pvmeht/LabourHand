@@ -14,7 +14,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { BottomNav } from "./BottomNav";
+
 import { userApi, AuthUser } from "../../utils/api";
 import { SessionManager } from "../../utils/session";
 
@@ -330,7 +330,7 @@ export function WorkerProfile() {
         </Card>
       </div>
       
-      <BottomNav />
+      
     </div>
   );
 }

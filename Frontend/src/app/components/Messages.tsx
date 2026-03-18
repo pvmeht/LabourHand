@@ -8,7 +8,7 @@ import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
 import { Badge } from "./ui/badge";
 import { Input } from "./ui/input";
-import { BottomNav } from "./BottomNav";
+
 import { messageApi, Conversation } from "../../utils/api";
 import { SessionManager } from "../../utils/session";
 
@@ -136,7 +136,7 @@ export function Messages() {
         )}
       </div>
 
-      <BottomNav />
+      
     </div>
   );
 }

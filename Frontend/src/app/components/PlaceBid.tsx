@@ -6,7 +6,7 @@ import { Card } from "./ui/card";
 import { Input } from "./ui/input";
 import { Textarea } from "./ui/textarea";
 import { Label } from "./ui/label";
-import { BottomNav } from "./BottomNav";
+
 
 export function PlaceBid() {
   const navigate = useNavigate();
@@ -229,7 +229,7 @@ export function PlaceBid() {
         </Card>
       </div>
       
-      <BottomNav />
+      
     </div>
   );
 }

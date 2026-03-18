@@ -13,7 +13,7 @@ import { Button } from "./ui/button";
 import { Badge } from "./ui/badge";
 import { Card } from "./ui/card";
 import { Avatar, AvatarFallback, AvatarImage } from "./ui/avatar";
-import { BottomNav } from "./BottomNav";
+
 import { projectApi, bidApi, Project, Bid } from "../../utils/api";
 import { ProjectMap } from "./ProjectMap";
 
@@ -182,7 +182,7 @@ export function ProjectDetails() {
         )}
       </div>
 
-      <BottomNav />
+      
     </div>
   );
 }
