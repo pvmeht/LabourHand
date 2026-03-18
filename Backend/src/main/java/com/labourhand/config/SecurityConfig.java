@@ -41,6 +41,11 @@ public class SecurityConfig {
                         .requestMatchers("/error").permitAll()
                         // Public read-only skills
                         .requestMatchers(HttpMethod.GET, "/api/skills").permitAll()
+                        // Public project browsing (discovery endpoints – no auth needed)
+                        .requestMatchers(HttpMethod.GET, "/api/projects").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/projects/nearby").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/projects/category/**").permitAll()
+                        .requestMatchers(HttpMethod.GET, "/api/projects/{id}").permitAll()
                         // Everything else requires authentication
                         .anyRequest().authenticated())
                 .authenticationProvider(authenticationProvider())
