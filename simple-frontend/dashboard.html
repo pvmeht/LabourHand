@@ -62,10 +62,16 @@
 
     <!-- Nearby Opportunities Map -->
     <section class="mb-4">
-      <div class="d-flex justify-content-between align-items-center mb-2">
+      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
         <h5 class="lh-section-title mb-0" data-en="Nearby Opportunities" data-hi="पास के अवसर">Nearby Opportunities</h5>
-        <div class="d-flex align-items-center gap-2">
-          <small class="text-muted fw-medium">Radius:</small>
+        
+        <div class="d-flex align-items-center gap-2 mb-1">
+          <div class="input-group input-group-sm">
+            <input type="text" id="loc-input" class="form-control" placeholder="Search city..." style="max-width:150px;" />
+            <button class="btn btn-outline-secondary" onclick="fetchCustomLocation()">🔍</button>
+            <button class="btn btn-outline-primary" onclick="geolocateUser()" title="Use My Location">📍</button>
+          </div>
+          <small class="text-muted fw-medium ms-2">Radius:</small>
           <input type="range" id="radius-slider" min="1" max="50" value="10" class="form-range" style="width:100px;accent-color:var(--lh-primary);" />
           <small class="text-muted" id="radius-label" style="min-width:40px;">10 km</small>
         </div>
@@ -143,53 +149,10 @@
   const user = SessionManager.getCurrentUser();
   const isOwner = user?.role === 'owner';
 
-  /* ── Header population ─────────────────────────────── */
-  document.getElementById('hdr-name').textContent = user?.name || 'User';
-  document.getElementById('hdr-role').textContent = user?.specialization || (isOwner ? 'Employer' : 'Worker');
-  if (user?.avatar) document.getElementById('hdr-avatar').src = user.avatar;
-  if (!user?.verified) document.getElementById('hdr-verified').style.display = 'none';
-
-  /* Sidebar profile link */
-  const profileLink = document.getElementById('sidebar-profile');
-  if (user?.id) profileLink.href = `worker-profile.html?id=${user.id}`;
-  const bottomProfile = document.getElementById('bottom-profile');
-  if (user?.id) bottomProfile.href = `worker-profile.html?id=${user.id}`;
-
-  /* ── Mode toggle ───────────────────────────────────── */
-  const modeSwitch = document.getElementById('mode-switch');
-  modeSwitch.checked = isOwner;
-  applyMode(isOwner);
-
-  function toggleMode(ownerOn) {
-    applyMode(ownerOn);
-  }
-  function applyMode(ownerOn) {
-    document.getElementById('mode-worker').classList.toggle('active', !ownerOn);
-    document.getElementById('mode-owner').classList.toggle('active', ownerOn);
-    document.getElementById('owner-actions').style.cssText = ownerOn ? '' : 'display:none!important;';
-    const fab = document.getElementById('fab-btn');
-    ownerOn ? fab.classList.remove('d-none') : fab.classList.add('d-none');
-  }
-
-  /* ── Language toggle ───────────────────────────────── */
-  let lang = SessionManager.getLanguage();
-  applyLanguage(lang);
-
-  function toggleLanguage() {
-    lang = lang === 'en' ? 'hi' : 'en';
-    SessionManager.setLanguage(lang);
-    applyLanguage(lang);
-  }
-  function applyLanguage(l) {
-    document.documentElement.setAttribute('data-lang', l);
-    document.getElementById('lang-btn').textContent = l === 'en' ? 'हिंदी' : 'English';
-    document.querySelectorAll('[data-en]').forEach(el => {
-      el.textContent = l === 'en' ? el.dataset.en : el.dataset.hi;
-    });
-  }
+  SessionManager.initCommonUI();
 
   /* ── Leaflet map ───────────────────────────────────── */
-  const CENTER = [12.9716, 77.5946];
+  let CENTER = [12.9716, 77.5946];
   const map = L.map('map').setView(CENTER, 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
@@ -252,8 +215,38 @@
     sliderTimer = setTimeout(loadProjects, 200);
   });
 
+  /* ── Location Fetch ────────────────────────────────── */
+  function geolocateUser() {
+    if (!navigator.geolocation) return alert('Geolocation is not supported by your browser');
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        CENTER = [pos.coords.latitude, pos.coords.longitude];
+        map.setView(CENTER, 12);
+        loadProjects();
+        document.getElementById('loc-input').value = "My Location";
+      },
+      (err) => alert(`Could not fetch location: ${err.message}`)
+    );
+  }
+
+  async function fetchCustomLocation() {
+    const q = document.getElementById('loc-input').value.trim();
+    if (!q) return geolocateUser();
+    try {
+      const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
+      const data = await resp.json();
+      if (!data || !data.length) return alert('Location not found');
+      CENTER = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      map.setView(CENTER, 12);
+      loadProjects();
+    } catch(err) {
+      alert('Error fetching location from Nominatim');
+    }
+  }
+
   /* ── Job categories ────────────────────────────────── */
   const categories = [
+    { icon:'📋', name:'All',          color:'#f1f5f9', cat:'' },
     { icon:'🔨', name:'Construction', color:'#fff7ed', cat:'CONSTRUCTION' },
     { icon:'💧', name:'Plumbing',     color:'#eff6ff', cat:'PLUMBING' },
     { icon:'⚡', name:'Electrical',   color:'#fefce8', cat:'ELECTRICAL' },
@@ -268,6 +261,7 @@
     </div>`).join('');
 
   async function filterByCategory(cat) {
+    if (!cat) return loadProjects();
     DataMapper.showSpinner('#jobs-list');
     try {
       const projects = await Api.project.getByCategory(cat);

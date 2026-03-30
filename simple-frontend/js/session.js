@@ -86,6 +86,60 @@ class SessionManager {
     static _generateToken() {
         return Math.random().toString(36).substring(2) + Date.now().toString(36);
     }
+
+    /* ── Common UI Helpers ────────────────────────────────────────────── */
+    static initCommonUI() {
+        const user = SessionManager.getCurrentUser();
+        if (!user) return;
+        const isOwner = user.role === 'owner';
+
+        document.getElementById('hdr-name') && (document.getElementById('hdr-name').textContent = user.name || 'User');
+        document.getElementById('hdr-role') && (document.getElementById('hdr-role').textContent = user.specialization || (isOwner ? 'Employer' : 'Worker'));
+        if (user.avatar && document.getElementById('hdr-avatar')) document.getElementById('hdr-avatar').src = user.avatar;
+        if (!user.verified && document.getElementById('hdr-verified')) document.getElementById('hdr-verified').style.display = 'none';
+
+        const profileLink = document.getElementById('sidebar-profile');
+        if (profileLink && user.id) profileLink.href = `worker-profile.html?id=${user.id}`;
+        const bottomProfile = document.getElementById('bottom-profile');
+        if (bottomProfile && user.id) bottomProfile.href = `worker-profile.html?id=${user.id}`;
+
+        const modeSwitch = document.getElementById('mode-switch');
+        if (modeSwitch) {
+            modeSwitch.checked = isOwner;
+            SessionManager.applyMode(isOwner);
+        }
+        SessionManager.applyLanguage(SessionManager.getLanguage());
+    }
+
+    static toggleMode(ownerOn) {
+        SessionManager.applyMode(ownerOn);
+    }
+
+    static applyMode(ownerOn) {
+        const dWorker = document.getElementById('mode-worker');
+        if (dWorker) dWorker.classList.toggle('active', !ownerOn);
+        const dOwner = document.getElementById('mode-owner');
+        if (dOwner) dOwner.classList.toggle('active', ownerOn);
+        const ownerActions = document.getElementById('owner-actions');
+        if (ownerActions) ownerActions.style.cssText = ownerOn ? '' : 'display:none!important;';
+        const fab = document.getElementById('fab-btn');
+        if (fab) { ownerOn ? fab.classList.remove('d-none') : fab.classList.add('d-none'); }
+    }
+
+    static toggleLanguage() {
+        let lang = SessionManager.getLanguage() === 'en' ? 'hi' : 'en';
+        SessionManager.setLanguage(lang);
+        SessionManager.applyLanguage(lang);
+    }
+
+    static applyLanguage(l) {
+        document.documentElement.setAttribute('data-lang', l);
+        const langBtn = document.getElementById('lang-btn');
+        if (langBtn) langBtn.textContent = l === 'en' ? 'हिंदी' : 'English';
+        document.querySelectorAll('[data-en]').forEach(el => {
+            el.textContent = l === 'en' ? el.dataset.en : el.dataset.hi;
+        });
+    }
 }
 
 // Make available globally

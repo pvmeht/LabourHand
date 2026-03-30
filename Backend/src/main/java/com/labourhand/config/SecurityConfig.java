@@ -38,6 +38,8 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         // ── CORS preflight must ALWAYS be permitted ──────────────────
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
+                        // Swagger UI / OpenAPI
+                        .requestMatchers("/v3/api-docs/**", "/swagger-ui/**", "/swagger-ui.html").permitAll()
                         // Public auth endpoints
                         .requestMatchers("/api/auth/**").permitAll()
                         // Internal error dispatches
