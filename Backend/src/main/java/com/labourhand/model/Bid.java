@@ -3,7 +3,8 @@ package com.labourhand.model;
 import jakarta.persistence.*;
 import lombok.*;
 import java.time.LocalDateTime;
-
+import java.util.List;
+import java.util.ArrayList;
 @Entity
 @Table(name = "bids")
 @Getter
@@ -31,6 +32,11 @@ public class Bid {
 
     @Column(columnDefinition = "TEXT")
     private String message;
+
+    @ElementCollection
+    @CollectionTable(name = "bid_team_workers", joinColumns = @JoinColumn(name = "bid_id"))
+    @Column(name = "worker_id")
+    private List<Long> teamWorkerIds = new ArrayList<>();
 
     @Enumerated(EnumType.STRING)
     @Column(nullable = false)

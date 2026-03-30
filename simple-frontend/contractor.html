@@ -29,7 +29,7 @@
 <div class="d-md-flex" style="max-width:1200px;margin:auto;">
   <!-- Sidebar -->
   <aside class="lh-sidebar">
-    <a href="contractor.html" class="lh-sidebar-link active">🏗️ Dashboard</a>
+    <a href="contractor.html" class="lh-sidebar-link active">🏗️ Employer Dashboard</a>
     <a href="messages.html"   class="lh-sidebar-link">💬 Messages</a>
     <a href="dashboard.html"  class="lh-sidebar-link">🗺️ Job Map</a>
     <hr/>
@@ -190,7 +190,7 @@
   Router.requireAuth();
 
   const user = SessionManager.getCurrentUser();
-  document.getElementById('hdr-name').textContent    = user?.name    || 'Owner';
+  document.getElementById('hdr-name').textContent    = user?.name    || 'Employer';
   document.getElementById('hdr-company').textContent = user?.companyName || 'Employer';
   if (user?.avatar) document.getElementById('hdr-avatar').src = user.avatar;
 

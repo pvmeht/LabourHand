@@ -32,16 +32,7 @@
     </div>
   </div>
 
-  <!-- Mode Toggle -->
-  <div class="px-3 py-2" style="max-width:1100px;margin:auto;">
-    <div class="lh-mode-toggle">
-      <span id="mode-worker" class="active">Worker Mode</span>
-      <div class="form-check form-switch mb-0">
-        <input class="form-check-input" type="checkbox" id="mode-switch" role="switch" onchange="toggleMode(this.checked)" />
-      </div>
-      <span id="mode-owner">Owner Mode</span>
-    </div>
-  </div>
+  <!-- Mode toggle removed -->
 </header>
 
 <!-- ── Layout wrapper ───────────────────────────────────────────────────── -->
@@ -153,6 +144,10 @@
 
   /* ── Leaflet map ───────────────────────────────────── */
   let CENTER = [12.9716, 77.5946];
+  try {
+      const saved = localStorage.getItem('lh_user_loc');
+      if (saved) CENTER = JSON.parse(saved);
+  } catch(e) {}
   const map = L.map('map').setView(CENTER, 12);
   L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
     attribution: '© OpenStreetMap'
@@ -221,6 +216,7 @@
     navigator.geolocation.getCurrentPosition(
       (pos) => {
         CENTER = [pos.coords.latitude, pos.coords.longitude];
+        localStorage.setItem('lh_user_loc', JSON.stringify(CENTER));
         map.setView(CENTER, 12);
         loadProjects();
         document.getElementById('loc-input').value = "My Location";
@@ -237,6 +233,7 @@
       const data = await resp.json();
       if (!data || !data.length) return alert('Location not found');
       CENTER = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
+      localStorage.setItem('lh_user_loc', JSON.stringify(CENTER));
       map.setView(CENTER, 12);
       loadProjects();
     } catch(err) {

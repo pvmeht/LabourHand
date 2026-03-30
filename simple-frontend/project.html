@@ -48,6 +48,11 @@
           </div>
         </div>
         <div class="mb-3">
+          <label class="form-label fw-medium">👥 Team Member User IDs <span class="text-muted fw-normal">(Optional)</span></label>
+          <input type="text" id="bid-team" class="form-control" placeholder="e.g. 5, 12, 8 (comma separated)" />
+          <small class="text-muted">You will automatically be included. Leave blank to bid alone.</small>
+        </div>
+        <div class="mb-3">
           <label class="form-label fw-medium">Proposal Message</label>
           <textarea id="bid-message" class="form-control" rows="3" placeholder="Describe your experience and approach…" required></textarea>
         </div>
@@ -119,7 +124,7 @@
           ${DataMapper.progressBar(p.progress || 0)}
           <div class="mt-3 d-flex gap-2 flex-wrap">
             <span class="badge bg-light text-dark">Posted ${DataMapper.timeAgo(p.postedAt)}</span>
-            <span class="badge bg-light text-dark">By ${p.ownerName || 'Owner'}</span>
+            <span class="badge bg-light text-dark">By ${p.ownerName || 'Employer'}</span>
             ${p.deadline ? `<span class="badge bg-light text-dark">Deadline ${p.deadline}</span>` : ''}
           </div>
         </div>`;
@@ -144,6 +149,7 @@
       const bids = await Api.bid.getProjectBids(pid);
       DataMapper.toTable('#bids-table', bids, [
         { label: 'Worker',   key: 'workerName' },
+        { label: 'Team',     key: 'teamWorkerIds', render: arr => Array.isArray(arr) && arr.length > 0 ? '+'+arr.length : 'Solo' },
         { label: 'Amount',   key: 'amount',        render: v => DataMapper.currency(v) },
         { label: 'Days',     key: 'estimatedDays' },
         { label: 'Rating',   key: 'workerRating',  render: v => `⭐ ${v}` },
@@ -180,11 +186,14 @@
     btn.disabled = true; btn.textContent = 'Submitting…';
 
     try {
+      const txt = document.getElementById('bid-team')?.value || '';
+      const teamArr = txt.split(',').map(s => parseInt(s.trim(), 10)).filter(n => !isNaN(n));
       await Api.bid.place({
         projectId:    Number(projectId),
         amount:       Number(document.getElementById('bid-amount').value),
         estimatedDays: Number(document.getElementById('bid-days').value),
         message:      document.getElementById('bid-message').value.trim(),
+        teamWorkerIds: teamArr
       });
       okBox.textContent = '✅ Bid placed successfully!';
       okBox.classList.remove('d-none');

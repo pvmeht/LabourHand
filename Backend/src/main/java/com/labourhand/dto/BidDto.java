@@ -2,6 +2,8 @@ package com.labourhand.dto;
 
 import lombok.Data;
 import jakarta.validation.constraints.*;
+import java.util.List;
+import java.util.ArrayList;
 
 public class BidDto {
 
@@ -16,6 +18,7 @@ public class BidDto {
         @NotBlank
         @Size(max = 500)
         private String message;
+        private List<Long> teamWorkerIds = new ArrayList<>();
     }
 
     @Data
@@ -33,6 +36,7 @@ public class BidDto {
         private long amount;
         private int estimatedDays;
         private String message;
+        private List<Long> teamWorkerIds = new ArrayList<>();
         private String status; // PENDING, ACCEPTED, REJECTED
         private boolean recommended;
         private String submittedAt;

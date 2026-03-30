@@ -65,6 +65,7 @@ public class BidService {
                 .estimatedDays(req.getEstimatedDays())
                 .message(req.getMessage())
                 .status(Bid.Status.PENDING)
+                .teamWorkerIds(req.getTeamWorkerIds() != null ? req.getTeamWorkerIds() : new java.util.ArrayList<>())
                 .build();
         return toResponse(bidRepository.save(bid));
     }
@@ -149,6 +150,7 @@ public class BidService {
         r.setAmount(bid.getAmount());
         r.setEstimatedDays(bid.getEstimatedDays());
         r.setMessage(bid.getMessage());
+        r.setTeamWorkerIds(bid.getTeamWorkerIds() != null ? bid.getTeamWorkerIds() : new java.util.ArrayList<>());
         r.setStatus(bid.getStatus().name());
         r.setRecommended(bid.isRecommended());
         r.setSubmittedAt(bid.getSubmittedAt() != null
