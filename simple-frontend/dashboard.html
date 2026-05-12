@@ -131,6 +131,7 @@
 <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
 <script src="js/session.js"></script>
 <script src="js/router.js"></script>
+<script src="js/notify.js"></script>
 <script src="js/apiService.js"></script>
 <script src="js/dataMapper.js"></script>
 <script src="js/mockTest.js"></script>
@@ -153,15 +154,54 @@
     attribution: '© OpenStreetMap'
   }).addTo(map);
 
+
+
   let markers = [];
+  let radiusCircle = null;
+
+  function updateRadiusCircle() {
+    if (radiusCircle) radiusCircle.remove();
+    radiusCircle = L.circle(CENTER, {
+      radius: radius * 1000,
+      color: 'var(--lh-primary)',
+      fillColor: 'var(--lh-primary)',
+      fillOpacity: 0.06,
+      weight: 2,
+      dashArray: '6 4'
+    }).addTo(map);
+  }
+
   function updateMarkers(projects) {
     markers.forEach(m => m.remove());
     markers = [];
     projects.forEach(p => {
       if (p.lat && p.lng) {
-        const m = L.marker([p.lat, p.lng])
+        
+        let emoji = '📍';
+        let style = 'border: 2px solid gray; background: #fff;';
+        
+        if (p.status === 'OPEN_FOR_BIDS') {
+           emoji = '📢'; // Open for workers
+           style = 'border: 2px solid #16a34a; background: #dcfce7;'; // Green for grab!
+        } else if (p.status === 'IN_PROGRESS') {
+           if (isOwner && p.ownerId === user?.id) {
+               emoji = '🏗️'; // Employer's active job
+               style = 'border: 2px solid #f97316; background: #ffedd5; text-shadow: 0px 0px 4px orange;';
+           } else {
+               emoji = '🚧'; // general WIP or someone else's job
+               style = 'border: 2px solid #64748b; background: #f1f5f9;';
+           }
+        } else if (p.status === 'COMPLETED') {
+           emoji = '✅';
+           style = 'border: 2px solid #3b82f6; background: #eff6ff;';
+        }
+
+        const iconHtml = `<div style="font-size:18px; text-align:center; border-radius:50%; width:34px; height:34px; line-height:30px; box-shadow: 0 3px 6px rgba(0,0,0,0.3); ${style}">${emoji}</div>`;
+        const customIcon = L.divIcon({ html: iconHtml, className: '', iconSize: [34, 34], iconAnchor: [17, 17] });
+
+        const m = L.marker([p.lat, p.lng], { icon: customIcon })
           .addTo(map)
-          .bindPopup(`<b>${p.title}</b><br>${p.location}<br>₹${p.budget}`);
+          .bindPopup(`<b>${p.title}</b><br>${p.location}<br>₹${p.budget}<br><div class="mt-1">${DataMapper.statusBadge(p.status)}</div>`);
         markers.push(m);
       }
     });
@@ -188,6 +228,7 @@
   let radius = 10;
   async function loadProjects() {
     DataMapper.showSpinner('#jobs-list');
+    updateRadiusCircle();
     try {
       const projects = await Api.project.getNearby(CENTER[0], CENTER[1], radius);
       DataMapper.toCards('#jobs-list', projects, jobCard);
@@ -203,6 +244,7 @@
   slider.addEventListener('input', () => {
     radius = Number(slider.value);
     radiusLabel.textContent = `${radius} km`;
+    updateRadiusCircle();
   });
   let sliderTimer;
   slider.addEventListener('change', () => {
@@ -211,17 +253,32 @@
   });
 
   /* ── Location Fetch ────────────────────────────────── */
-  function geolocateUser() {
-    if (!navigator.geolocation) return alert('Geolocation is not supported by your browser');
+  function geolocateUser(silent = false) {
+    if (!navigator.geolocation) {
+      if (!silent) Notify.error('Geolocation is not supported by your browser');
+      return;
+    }
     navigator.geolocation.getCurrentPosition(
       (pos) => {
-        CENTER = [pos.coords.latitude, pos.coords.longitude];
+        const newCenter = [pos.coords.latitude, pos.coords.longitude];
+        // Only reload if location actually changed significantly, or if user explicitly requested it
+        const changed = Math.abs(CENTER[0] - newCenter[0]) > 0.001 || Math.abs(CENTER[1] - newCenter[1]) > 0.001;
+        
+        CENTER = newCenter;
         localStorage.setItem('lh_user_loc', JSON.stringify(CENTER));
-        map.setView(CENTER, 12);
-        loadProjects();
-        document.getElementById('loc-input').value = "My Location";
+        
+        if (!silent) {
+          map.setView(CENTER, 12);
+          document.getElementById('loc-input').value = "My Location";
+          loadProjects();
+        } else if (changed) {
+          // In silent background mode, only reload data if the location changed enough to affect distances
+          loadProjects();
+        }
       },
-      (err) => alert(`Could not fetch location: ${err.message}`)
+      (err) => {
+        if (!silent) Notify.error(`Could not fetch location: ${err.message}`);
+      }
     );
   }
 
@@ -231,13 +288,13 @@
     try {
       const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(q)}`);
       const data = await resp.json();
-      if (!data || !data.length) return alert('Location not found');
+      if (!data || !data.length) return Notify.error('Location not found');
       CENTER = [parseFloat(data[0].lat), parseFloat(data[0].lon)];
       localStorage.setItem('lh_user_loc', JSON.stringify(CENTER));
       map.setView(CENTER, 12);
       loadProjects();
     } catch(err) {
-      alert('Error fetching location from Nominatim');
+      Notify.error('Error fetching location from Nominatim');
     }
   }
 
@@ -258,10 +315,15 @@
     </div>`).join('');
 
   async function filterByCategory(cat) {
+    // Reset active state on pills
+    document.querySelectorAll('.lh-category-pill').forEach(el => el.classList.remove('active'));
+    event?.currentTarget?.classList.add('active');
+
     if (!cat) return loadProjects();
     DataMapper.showSpinner('#jobs-list');
     try {
-      const projects = await Api.project.getByCategory(cat);
+      // Use location-aware + category combined endpoint
+      const projects = await Api.project.getNearbyByCategory(CENTER[0], CENTER[1], radius, cat);
       DataMapper.toCards('#jobs-list', projects, jobCard);
       updateMarkers(projects);
     } catch (err) {
@@ -271,6 +333,12 @@
 
   // Initial load
   loadProjects();
+  
+  // Try to get accurate location silently on startup
+  geolocateUser(true);
+  
+  // Auto-refresh location and distances every 10 minutes (600,000 ms)
+  setInterval(() => geolocateUser(true), 600000);
 </script>
 </body>
 </html>

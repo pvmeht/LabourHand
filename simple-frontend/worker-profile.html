@@ -40,6 +40,104 @@
       <h5 class="lh-section-title">Skills</h5>
       <div id="skills-list" class="d-flex flex-wrap gap-2"><!-- JS --></div>
     </section>
+    
+    <!-- Professional Details (Worker Only) -->
+    <section class="mb-4 d-none" id="professional-details-section">
+      <h5 class="lh-section-title">Professional Details</h5>
+      <div class="lh-card p-4">
+        <form id="professional-form">
+          <div id="prof-alert" class="alert d-none py-2 small"></div>
+          <div class="row g-3 mb-3">
+            <div class="col-sm-6">
+              <label class="form-label fw-medium">Main Specialization</label>
+              <input type="text" id="prof-spec" class="form-control" placeholder="e.g. Master Carpenter" />
+            </div>
+            <div class="col-sm-6">
+              <label class="form-label fw-medium">Years of Experience</label>
+              <input type="number" id="prof-exp" class="form-control" placeholder="e.g. 5" />
+            </div>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Current Status</label>
+            <select id="prof-status" class="form-select w-auto">
+              <option value="available">Available for Hire</option>
+              <option value="on-site">Currently Working On-site</option>
+              <option value="busy">Busy / Not Available</option>
+            </select>
+          </div>
+          <div class="mb-3">
+            <label class="form-label fw-medium">Bio / About Me</label>
+            <textarea id="prof-bio" class="form-control" rows="3" placeholder="Describe your expertise..."></textarea>
+          </div>
+          <button type="submit" id="prof-submit" class="btn fw-semibold w-100" style="background:var(--lh-primary);color:#fff;">Save Professional Details</button>
+        </form>
+      </div>
+    </section>
+
+    <!-- Payment Details (Worker Only) -->
+    <section class="mb-4 d-none" id="payment-details-section">
+      <h5 class="lh-section-title">Payment Details</h5>
+      <div class="lh-card p-4">
+        <p class="text-muted small mb-3">Enter your payment details securely. Employers will use this to transfer milestone payments.</p>
+        
+        <form id="payment-form">
+          <div id="payment-alert" class="alert d-none py-2 small"></div>
+          
+          <div class="mb-3">
+            <label class="form-label fw-medium">Payment Method</label>
+            <select id="pay-method" class="form-select w-auto">
+              <option value="BANK">Bank Transfer (NEFT/IMPS)</option>
+              <option value="UPI">UPI</option>
+            </select>
+          </div>
+
+          <!-- Bank Details Fields -->
+          <div id="bank-fields">
+            <div class="row g-3 mb-2">
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Account Holder Name</label>
+                <input type="text" id="pay-bank-name" class="form-control" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Bank Name</label>
+                <input type="text" id="pay-bank" class="form-control" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">IFSC Code</label>
+                <input type="text" id="pay-ifsc" class="form-control" />
+              </div>
+            </div>
+            
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Account Number</label>
+                <input type="text" id="pay-acc1" class="form-control" placeholder="Enter account number" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Confirm Account Number</label>
+                <input type="text" id="pay-acc2" class="form-control" placeholder="Re-enter account number" />
+              </div>
+            </div>
+          </div>
+
+          <!-- UPI Fields -->
+          <div id="upi-fields" class="d-none">
+            <div class="row g-3 mb-3">
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">UPI ID</label>
+                <input type="text" id="pay-upi1" class="form-control" placeholder="e.g. 9876543210@ybl" />
+              </div>
+              <div class="col-sm-6">
+                <label class="form-label fw-medium">Confirm UPI ID</label>
+                <input type="text" id="pay-upi2" class="form-control" placeholder="Re-enter UPI ID" />
+              </div>
+            </div>
+          </div>
+
+          <button type="submit" id="pay-submit" class="btn fw-semibold w-100" style="background:var(--lh-primary);color:#fff;">Save Payment Details</button>
+        </form>
+      </div>
+    </section>
 
     <!-- Certifications -->
     <section class="mb-4">
@@ -108,65 +206,128 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/session.js"></script>
 <script src="js/router.js"></script>
+<script src="js/notify.js"></script>
 <script src="js/apiService.js"></script>
 <script src="js/dataMapper.js"></script>
 <script src="js/mockTest.js"></script>
 <script>
+  window.onerror = (msg, url, line) => {
+      Notify.error(`System Error: ${msg} at ${line}`);
+      return false;
+  };
+
   Router.requireAuth();
 
   const currentUser = SessionManager.getCurrentUser();
+  SessionManager.initCommonUI();
+
   const profileId   = Router.param('id') || currentUser?.id;
   const isOwnProfile = String(profileId) === String(currentUser?.id);
 
   // Hide cert add button if viewing someone else's profile
-  if (!isOwnProfile) document.getElementById('add-cert-btn').style.display = 'none';
+  if (!isOwnProfile) {
+      document.getElementById('add-cert-btn').style.display = 'none';
+  } else {
+      document.getElementById('payment-details-section').classList.remove('d-none');
+      document.getElementById('professional-details-section').classList.remove('d-none');
+  }
 
   async function loadProfile() {
     DataMapper.showSpinner('#profile-card');
     try {
       const w = await Api.worker.getById(profileId);
 
-      document.getElementById('profile-card').innerHTML = `
+      const cardEl = document.getElementById('profile-card');
+      if (cardEl) {
+        cardEl.innerHTML = `
         <div class="lh-card p-4">
           <div class="d-flex align-items-start gap-4">
-            <img src="${w.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(w.name)}&background=f97316&color=fff&size=96`}"
-                 class="rounded-circle border" style="width:80px;height:80px;object-fit:cover;" alt="${w.name}" />
+            ${DataMapper.avatar(w.avatar, w.name, 80)}
             <div class="flex-grow-1">
               <div class="d-flex align-items-center gap-2 flex-wrap mb-1">
                 <h3 class="mb-0 fw-bold">${w.name}</h3>
                 ${w.verified     ? '<span class="lh-verified">✔ Verified</span>' : ''}
                 ${w.skillsIndiaVerified ? '<span class="badge bg-success">Skills India</span>' : ''}
               </div>
-              <p class="text-muted mb-2">${w.specialization || 'Worker'}</p>
+              <p class="text-muted mb-2">${w.specialization || 'Worker'} • <span class="badge bg-secondary">User ID: ${w.id}</span></p>
               <p class="mb-2 small">${w.bio || ''}</p>
-              <div class="d-flex gap-3 flex-wrap">
-                ${w.rating        ? `<span>⭐ ${w.rating} rating</span>` : ''}
-                ${w.completedJobs ? `<span>✅ ${w.completedJobs} jobs</span>` : ''}
-                ${w.onTimeRate    ? `<span>⏱️ ${w.onTimeRate}% on-time</span>` : ''}
-                ${w.rehireRate    ? `<span>🔁 ${w.rehireRate}% rehire</span>` : ''}
+              <div class="d-flex gap-3 flex-wrap mt-2">
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">${w.completedJobs || 0}</div>
+                  <div class="text-muted small">Completed Jobs</div>
+                </div>
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">${w.yearsExperience || 0} yr</div>
+                  <div class="text-muted small">Experience</div>
+                </div>
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">${w.workerStatus || 'Available'}</div>
+                  <div class="text-muted small">Status</div>
+                </div>
+                <div class="text-center bg-light rounded p-2 px-3 border">
+                  <div class="fw-bold fs-5">⭐ ${w.rating ? w.rating.toFixed(1) : '0.0'}</div>
+                  <div class="text-muted small">Rating</div>
+                </div>
               </div>
             </div>
           </div>
         </div>`;
+      
+      // Populate Professional Details
+      if (isOwnProfile) {
+          document.getElementById('prof-spec').value = w.specialization || '';
+          document.getElementById('prof-exp').value = w.yearsExperience || 0;
+          document.getElementById('prof-status').value = w.workerStatus || 'available';
+          document.getElementById('prof-bio').value = w.bio || '';
+      }
+
+      // Populate Payment Details (if own profile)
+      if (isOwnProfile) {
+          if (w.paymentMethod) {
+              document.getElementById('pay-method').value = w.paymentMethod;
+              document.getElementById('pay-method').dispatchEvent(new Event('change'));
+          }
+          
+          // Populate Bank fields if they exist
+          if (w.holderName) document.getElementById('pay-bank-name').value = w.holderName;
+          if (w.bankName) document.getElementById('pay-bank').value = w.bankName;
+          if (w.ifscCode) document.getElementById('pay-ifsc').value = w.ifscCode;
+          if (w.bankAccountNo) {
+              document.getElementById('pay-acc1').value = w.bankAccountNo;
+              document.getElementById('pay-acc2').value = w.bankAccountNo;
+          }
+          
+          // Populate UPI fields if they exist
+          if (w.upiId) {
+              document.getElementById('pay-upi1').value = w.upiId;
+              document.getElementById('pay-upi2').value = w.upiId;
+          }
+      }
 
       // Stats row
-      document.getElementById('profile-stats').innerHTML = [
-        { label:'Rating',        val: w.rating        ? `⭐ ${w.rating}` : '—' },
-        { label:'Completed Jobs',val: w.completedJobs || 0 },
-        { label:'Experience',    val: w.yearsExperience ? `${w.yearsExperience} yrs` : '—' },
-        { label:'Status',        val: w.workerStatus || '—' },
-      ].map(s => `
-        <div class="col-6 col-md-3">
-          <div class="lh-card p-3 text-center">
-            <p class="h5 fw-bold mb-0">${s.val}</p>
-            <small class="text-muted">${s.label}</small>
-          </div>
-        </div>`).join('');
+      // const statsEl = document.getElementById('profile-stats');
+      // if (statsEl) {
+      //   statsEl.innerHTML = [
+      //     { label:'Rating',        val: w.rating        ? `⭐ ${w.rating}` : '—' },
+      //     { label:'Completed Jobs',val: w.completedJobs || 0 },
+      //     { label:'Experience',    val: w.yearsExperience ? `${w.yearsExperience} yrs` : '—' },
+      //     { label:'Status',        val: w.workerStatus || '—' },
+      //   ].map(s => `
+      //     <div class="col-6 col-md-3">
+      //       <div class="lh-card p-3 text-center">
+      //         <p class="h5 fw-bold mb-0">${s.val}</p>
+      //         <small class="text-muted">${s.label}</small>
+      //       </div>
+      //     </div>`).join('');
+      // }
 
       // Skills chips
-      document.getElementById('skills-list').innerHTML =
-        (w.skills || []).map(s => `<span class="badge bg-light text-dark border px-3 py-2">${s}</span>`).join('') ||
-        '<p class="text-muted small">No skills listed.</p>';
+      const skillsEl = document.getElementById('skills-list');
+      if (skillsEl) {
+        skillsEl.innerHTML =
+          (w.skills || []).map(s => `<span class="badge bg-light text-dark border px-3 py-2">${s}</span>`).join('') ||
+          '<p class="text-muted small">No skills listed.</p>';
+      }
 
       // Message button for others
       if (!isOwnProfile) {
@@ -174,13 +335,15 @@
         document.getElementById('msg-btn').onclick = () =>
           Api.message.send(w.id, `Hi ${w.name}, I found your profile on LabourHand.`)
             .then(() => location.href = 'messages.html')
-            .catch(err => alert(err.message));
+            .catch(err => Notify.error(err.message));
       }
+    }
 
     } catch (err) {
       DataMapper.showError('#profile-card', `Could not load profile: ${err.message}`);
     }
   }
+    
 
   async function loadCertifications() {
     DataMapper.showSpinner('#certs-list');
@@ -200,25 +363,29 @@
   }
 
   async function deleteCert(id) {
-    if (!confirm('Delete this certification?')) return;
-    try { await Api.worker.deleteCertification(id); loadCertifications(); }
-    catch (err) { alert(`Error: ${err.message}`); }
+    Notify.confirm('Delete this certification?', async () => {
+      try {
+        await Api.worker.deleteCertification(id);
+        loadCertifications();
+        Notify.success("Certification deleted");
+      } catch (err) { Notify.error(`Error: ${err.message}`); }
+    });
   }
 
   async function loadReviews() {
     DataMapper.showSpinner('#reviews-list');
     try {
-      const reviews = await Api.worker.getReviews(profileId);
-      DataMapper.toCards('#reviews-list', reviews, r => `
+      const ratings = await Api.worker.getRatings(profileId);
+      DataMapper.toCards('#reviews-list', ratings, r => `
         <div class="lh-card p-3 mb-2">
           <div class="d-flex justify-content-between align-items-start mb-1">
-            <span class="fw-semibold small">${r.clientName}</span>
-            <span>${'★'.repeat(r.rating)}${'☆'.repeat(5-r.rating)}</span>
+            <span class="fw-semibold small">${r.fromUserName || 'Anonymous'}</span>
+            <span>${DataMapper.starRating(r.rating)}</span>
           </div>
           <p class="mb-1 small">${r.comment || ''}</p>
-          <small class="text-muted">${r.projectName} · ${r.duration || ''}</small>
+          <small class="text-muted">Project ID: ${r.projectId} · ${DataMapper.timeAgo(r.createdAt)}</small>
         </div>`);
-    } catch { DataMapper.showError('#reviews-list', 'Could not load reviews.'); }
+    } catch { DataMapper.showError('#reviews-list', 'Could not load feedback.'); }
   }
 
   /* Add Certification */
@@ -245,9 +412,93 @@
     }
   });
 
+  /* Payment Details Logic */
+  document.getElementById('pay-method').addEventListener('change', e => {
+      if (e.target.value === 'BANK') {
+          document.getElementById('bank-fields').classList.remove('d-none');
+          document.getElementById('upi-fields').classList.add('d-none');
+      } else {
+          document.getElementById('bank-fields').classList.add('d-none');
+          document.getElementById('upi-fields').classList.remove('d-none');
+      }
+  });
+
+  document.getElementById('payment-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const method = document.getElementById('pay-method').value;
+      const alertBox = document.getElementById('payment-alert');
+      alertBox.classList.add('d-none');
+      alertBox.classList.remove('alert-success', 'alert-danger');
+
+      let reqData = { paymentMethod: method };
+
+      // Validate and collect Bank details if visible or filled
+      const acc1 = document.getElementById('pay-acc1').value;
+      const acc2 = document.getElementById('pay-acc2').value;
+      if (acc1 || acc2) {
+          if (acc1 !== acc2) {
+              alertBox.textContent = "Account numbers do not match!";
+              alertBox.classList.add('alert-danger', 'd-block');
+              return;
+          }
+          reqData.bankAccountNo = acc1;
+          reqData.bankName = document.getElementById('pay-bank').value;
+          reqData.ifscCode = document.getElementById('pay-ifsc').value;
+          reqData.holderName = document.getElementById('pay-bank-name').value;
+      }
+
+      // Validate and collect UPI details if visible or filled
+      const upi1 = document.getElementById('pay-upi1').value;
+      const upi2 = document.getElementById('pay-upi2').value;
+      if (upi1 || upi2) {
+          if (upi1 !== upi2) {
+              alertBox.textContent = "UPI IDs do not match!";
+              alertBox.classList.add('alert-danger', 'd-block');
+              return;
+          }
+          reqData.upiId = upi1;
+      }
+
+      const btn = document.getElementById('pay-submit');
+      btn.disabled = true; btn.textContent = 'Saving...';
+
+      try {
+          await Api.worker.updatePaymentDetails(reqData);
+          Notify.success("Payment details saved successfully!");
+      } catch (err) {
+          Notify.error(`Error: ${err.message}`);
+      } finally {
+          btn.disabled = false; btn.textContent = 'Save Payment Details';
+      }
+  });
+
+  document.getElementById('professional-form').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('prof-submit');
+      const alertBox = document.getElementById('prof-alert');
+      alertBox.classList.add('d-none');
+      
+      btn.disabled = true; btn.textContent = 'Saving...';
+      try {
+          await Api.user.updateMe({
+              specialization: document.getElementById('prof-spec').value.trim(),
+              yearsExperience: parseInt(document.getElementById('prof-exp').value) || 0,
+              workerStatus: document.getElementById('prof-status').value,
+              bio: document.getElementById('prof-bio').value.trim()
+          });
+          Notify.success("Professional details updated!");
+          location.reload();
+      } catch (err) {
+          Notify.error(`Error: ${err.message}`);
+      } finally {
+          btn.disabled = false; btn.textContent = 'Save Professional Details';
+      }
+  });
+
   loadProfile();
   loadCertifications();
   loadReviews();
 </script>
 </body>
 </html>
+  

@@ -26,11 +26,19 @@ public class BidService {
                 .stream().map(this::toResponse).collect(Collectors.toList());
     }
 
-    /** Worker's own bids — all statuses, enriched with project info */
+    /** Worker's own bids OR Owner's received bids */
     public List<BidDto.Response> getMyBids() {
-        User worker = userService.getCurrentUser();
-        return bidRepository.findByWorkerId(worker.getId())
-                .stream().map(this::toResponse).collect(Collectors.toList());
+        User user = userService.getCurrentUser();
+        if (user.getRole() == User.Role.OWNER) {
+            List<Project> projects = projectRepository.findByOwnerId(user.getId());
+            return projects.stream()
+                           .flatMap(p -> bidRepository.findByProjectId(p.getId()).stream())
+                           .map(this::toResponse)
+                           .collect(Collectors.toList());
+        } else {
+            return bidRepository.findByWorkerId(user.getId())
+                    .stream().map(this::toResponse).collect(Collectors.toList());
+        }
     }
 
     public BidDto.Response getById(Long id) {
@@ -152,7 +160,8 @@ public class BidService {
         r.setMessage(bid.getMessage());
         r.setTeamWorkerIds(bid.getTeamWorkerIds() != null ? bid.getTeamWorkerIds() : new java.util.ArrayList<>());
         r.setStatus(bid.getStatus().name());
-        r.setRecommended(bid.isRecommended());
+        r.setAmountPaid(bid.getAmountPaid());
+        r.setAmountRemaining(bid.getAmount() - bid.getAmountPaid());
         r.setSubmittedAt(bid.getSubmittedAt() != null
                 ? bid.getSubmittedAt().toString()
                 : "");

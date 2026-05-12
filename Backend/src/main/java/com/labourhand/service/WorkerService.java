@@ -54,6 +54,22 @@ public class WorkerService {
     }
 
     @Transactional
+    public void updatePaymentDetails(com.labourhand.dto.WorkerPaymentDetailsDto req) {
+        User worker = userService.getCurrentUser();
+        WorkerProfile wp = workerProfileRepository.findById(worker.getId())
+                .orElseThrow(() -> new RuntimeException("Worker profile not found"));
+        
+        if (req.getPaymentMethod() != null) wp.setPaymentMethod(req.getPaymentMethod());
+        if (req.getBankAccountNo() != null && !req.getBankAccountNo().isEmpty()) wp.setBankAccountNo(req.getBankAccountNo());
+        if (req.getBankName() != null && !req.getBankName().isEmpty()) wp.setBankName(req.getBankName());
+        if (req.getIfscCode() != null && !req.getIfscCode().isEmpty()) wp.setIfscCode(req.getIfscCode());
+        if (req.getHolderName() != null && !req.getHolderName().isEmpty()) wp.setHolderName(req.getHolderName());
+        if (req.getUpiId() != null && !req.getUpiId().isEmpty()) wp.setUpiId(req.getUpiId());
+        
+        workerProfileRepository.save(wp);
+    }
+
+    @Transactional
     public MiscDto.CertificationResponse addCertification(MiscDto.CertificationRequest req) {
         User worker = userService.getCurrentUser();
         WorkerProfile wp = workerProfileRepository.findById(worker.getId())

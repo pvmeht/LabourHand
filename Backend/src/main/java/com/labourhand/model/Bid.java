@@ -27,6 +27,9 @@ public class Bid {
     @Column(nullable = false)
     private long amount; // bid amount in INR
 
+    @Column(name = "amount_paid", nullable = false)
+    private long amountPaid = 0; // tracked amount already paid to worker
+
     @Column(name = "estimated_days", nullable = false)
     private int estimatedDays;
 

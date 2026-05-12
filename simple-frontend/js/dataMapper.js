@@ -133,6 +133,15 @@ const DataMapper = {
         return `₹${Number(amount).toLocaleString('en-IN')}`;
     },
 
+    // ─── Avatar renderer ───────────────────────────────────────────────────────
+    avatar(url, name = 'User', size = 40) {
+        const fallback = `https://ui-avatars.com/api/?name=${encodeURIComponent(name)}&background=random&color=fff&size=${size}`;
+        const finalUrl = url && url.startsWith('http') ? url : fallback;
+        return `<img src="${finalUrl}" class="rounded-circle border" 
+                     style="width:${size}px; height:${size}px; object-fit:cover;" 
+                     alt="${name}" title="${name}" />`;
+    },
+
     // ─── Relative time ─────────────────────────────────────────────────────────
     timeAgo(isoString) {
         if (!isoString) return '—';

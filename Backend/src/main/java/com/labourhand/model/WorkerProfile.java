@@ -46,6 +46,25 @@ public class WorkerProfile {
     @Column(name = "current_site")
     private String currentSite;
 
+    // --- Payment Details ---
+    @Column(name = "payment_method")
+    private String paymentMethod; // "BANK" or "UPI"
+
+    @Column(name = "bank_account_no")
+    private String bankAccountNo;
+
+    @Column(name = "bank_name")
+    private String bankName;
+
+    @Column(name = "ifsc_code")
+    private String ifscCode;
+
+    @Column(name = "holder_name")
+    private String holderName;
+
+    @Column(name = "upi_id")
+    private String upiId;
+
     @ManyToMany(fetch = FetchType.LAZY)
     @JoinTable(
         name = "worker_skills",

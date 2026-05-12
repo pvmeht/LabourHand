@@ -95,20 +95,73 @@ class SessionManager {
 
         document.getElementById('hdr-name') && (document.getElementById('hdr-name').textContent = user.name || 'User');
         document.getElementById('hdr-role') && (document.getElementById('hdr-role').textContent = user.specialization || (isOwner ? 'Employer' : 'Worker'));
-        if (user.avatar && document.getElementById('hdr-avatar')) document.getElementById('hdr-avatar').src = user.avatar;
+        if (document.getElementById('hdr-avatar')) {
+            const avatarUrl = user.avatar || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.name || 'U')}&background=${isOwner ? '3b82f6' : 'f97316'}&color=fff&size=96`;
+            document.getElementById('hdr-avatar').src = avatarUrl;
+        }
         if (!user.verified && document.getElementById('hdr-verified')) document.getElementById('hdr-verified').style.display = 'none';
 
+        const profilePage = isOwner ? 'owner-profile.html' : 'worker-profile.html';
         const profileLink = document.getElementById('sidebar-profile');
-        if (profileLink && user.id) profileLink.href = `worker-profile.html?id=${user.id}`;
+        if (profileLink && user.id) profileLink.href = `${profilePage}?id=${user.id}`;
         const bottomProfile = document.getElementById('bottom-profile');
-        if (bottomProfile && user.id) bottomProfile.href = `worker-profile.html?id=${user.id}`;
+        if (bottomProfile && user.id) bottomProfile.href = `${profilePage}?id=${user.id}`;
 
-        const modeSwitch = document.getElementById('mode-switch');
-        if (modeSwitch) {
-            modeSwitch.checked = isOwner;
-            SessionManager.applyMode(isOwner);
-        }
+        SessionManager.applyMode(isOwner);
+        SessionManager.renderNavigation(isOwner, user.id);
         SessionManager.applyLanguage(SessionManager.getLanguage());
+    }
+
+    static renderNavigation(isOwner, userId) {
+        const sidebar = document.querySelector('aside.lh-sidebar');
+        const bottomNav = document.querySelector('nav.lh-bottom-nav');
+        
+        let path = window.location.pathname.split('/').pop() || 'index.html';
+        if (!path || path === '' || path === '/') path = 'index.html';
+
+        const isUrl = (p) => path.includes(p) ? 'active' : '';
+        const profilePage = isOwner ? 'owner-profile.html' : 'worker-profile.html';
+
+        if (sidebar) {
+            if (isOwner) {
+                sidebar.innerHTML = `
+                    <a href="contractor.html" class="lh-sidebar-link ${isUrl('contractor')}">🏗️ Employer Dashboard</a>
+                    <a href="my-bids.html"    class="lh-sidebar-link ${isUrl('my-bids')}">📋 Track My Bids</a>
+                    <a href="messages.html"   class="lh-sidebar-link ${isUrl('message')}">💬 Messages</a>
+                    <a href="dashboard.html"  class="lh-sidebar-link ${isUrl('dashboard')}">🗺️ Job Map</a>
+                    <a href="${profilePage}?id=${userId}" class="lh-sidebar-link ${isUrl(profilePage)}" id="sidebar-profile">👤 My Profile</a>
+                    <hr/>
+                    <button class="lh-sidebar-link border-0 w-100 text-start" onclick="Router.logout()">🚪 Logout</button>
+                `;
+            } else {
+                sidebar.innerHTML = `
+                    <a href="dashboard.html"      class="lh-sidebar-link ${isUrl('dashboard')}">🏠 Dashboard</a>
+                    <a href="my-bids.html"        class="lh-sidebar-link ${isUrl('my-bids')}">📋 My Bids</a>
+                    <a href="messages.html"       class="lh-sidebar-link ${isUrl('message')}">💬 Messages</a>
+                    <a href="${profilePage}?id=${userId}" class="lh-sidebar-link ${isUrl(profilePage)}" id="sidebar-profile">👤 My Profile</a>
+                    <hr/>
+                    <button class="lh-sidebar-link border-0 w-100 text-start" onclick="Router.logout()">🚪 Logout</button>
+                `;
+            }
+        }
+
+        if (bottomNav) {
+            if (isOwner) {
+                bottomNav.innerHTML = `
+                    <a href="contractor.html" class="${isUrl('contractor')}">🏗️<span>Dashboard</span></a>
+                    <a href="dashboard.html" class="${isUrl('dashboard')}">🗺️<span>Map</span></a>
+                    <a href="messages.html" class="${isUrl('message')}">💬<span>Messages</span></a>
+                    <a href="${profilePage}?id=${userId}" class="${isUrl(profilePage)}" id="bottom-profile">👤<span>Profile</span></a>
+                `;
+            } else {
+                bottomNav.innerHTML = `
+                    <a href="dashboard.html" class="${isUrl('dashboard')}">🏠<span>Home</span></a>
+                    <a href="my-bids.html" class="${isUrl('my-bids')}">📋<span>My Bids</span></a>
+                    <a href="messages.html" class="${isUrl('message')}">💬<span>Messages</span></a>
+                    <a href="${profilePage}?id=${userId}" class="${isUrl(profilePage)}" id="bottom-profile">👤<span>Profile</span></a>
+                `;
+            }
+        }
     }
 
     static toggleMode(ownerOn) {

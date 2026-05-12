@@ -7,7 +7,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create-drop
+      ddl-auto: update
     show-sql: false
     defer-datasource-initialization: true
     properties:
@@ -17,7 +17,7 @@ spring:
 
   sql:
     init:
-      mode: always
+      mode: never
       data-locations: classpath:data.sql
 
 jwt:

@@ -34,6 +34,8 @@ public class BidDto {
         private int workerCompletedJobs;
         private boolean workerVerified;
         private long amount;
+        private long amountPaid;
+        private long amountRemaining;
         private int estimatedDays;
         private String message;
         private List<Long> teamWorkerIds = new ArrayList<>();

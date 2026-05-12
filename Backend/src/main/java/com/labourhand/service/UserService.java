@@ -47,6 +47,10 @@ public class UserService {
                     wp.setSpecialization(updates.getSpecialization());
                 if (updates.getBio() != null)
                     wp.setBio(updates.getBio());
+                if (updates.getYearsExperience() > 0)
+                    wp.setYearsExperience(updates.getYearsExperience());
+                if (updates.getWorkerStatus() != null)
+                    wp.setStatus(updates.getWorkerStatus());
                 workerProfileRepository.save(wp);
             });
         } else {
@@ -101,6 +105,14 @@ public class UserService {
                 dto.setRehireRate(wp.getRehireRate());
                 dto.setWorkerStatus(wp.getStatus());
                 dto.setSkills(wp.getSkills().stream().map(Skill::getName).collect(Collectors.toList()));
+                
+                // Map Payment Details
+                dto.setPaymentMethod(wp.getPaymentMethod());
+                dto.setBankAccountNo(wp.getBankAccountNo());
+                dto.setBankName(wp.getBankName());
+                dto.setIfscCode(wp.getIfscCode());
+                dto.setHolderName(wp.getHolderName());
+                dto.setUpiId(wp.getUpiId());
             });
         } else {
             opRepo.findById(user.getId()).ifPresent(op -> {

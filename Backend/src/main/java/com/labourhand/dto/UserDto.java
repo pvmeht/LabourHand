@@ -27,6 +27,14 @@ public class UserDto {
     private String workerStatus;
     private List<String> skills;
 
+    // Payment Details
+    private String paymentMethod;
+    private String bankAccountNo;
+    private String bankName;
+    private String ifscCode;
+    private String holderName;
+    private String upiId;
+
     // Owner-specific fields (null if worker)
     private String companyName;
     private int projectsPosted;

@@ -53,6 +53,7 @@
       <button class="btn btn-sm btn-primary" onclick="filterBids('ALL')">All</button>
       <button class="btn btn-sm btn-outline-secondary" onclick="filterBids('PENDING')">Pending</button>
       <button class="btn btn-sm btn-outline-success"   onclick="filterBids('ACCEPTED')">Accepted</button>
+      <button class="btn btn-sm btn-outline-info"      onclick="filterBids('COMPLETED')">Completed</button>
       <button class="btn btn-sm btn-outline-danger"    onclick="filterBids('REJECTED')">Rejected</button>
     </div>
 
@@ -72,6 +73,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/session.js"></script>
 <script src="js/router.js"></script>
+<script src="js/notify.js"></script>
 <script src="js/apiService.js"></script>
 <script src="js/dataMapper.js"></script>
 <script src="js/mockTest.js"></script>
@@ -82,6 +84,7 @@
   let allBids = [];
 
   function bidCard(b) {
+    const isProjectCompleted = b.projectStatus === 'COMPLETED' || b.projectStatus === 'PAYMENT_VERIFIED';
     return `
       <div class="lh-card p-4 mb-3 lh-card-clickable" onclick="location.href='project.html?id=${b.projectId}'">
         <div class="d-flex justify-content-between align-items-start mb-2">
@@ -89,7 +92,7 @@
             <h6 class="fw-bold mb-0">${b.projectTitle}</h6>
             <small class="text-muted">📍 ${b.projectLocation}</small>
           </div>
-          ${DataMapper.statusBadge(b.status)}
+          ${isProjectCompleted ? '<span class="badge bg-info">Finished</span>' : DataMapper.statusBadge(b.status)}
         </div>
 
         <div class="row g-3 my-2">
@@ -107,11 +110,29 @@
           </div>
         </div>
 
-        ${b.progress ? DataMapper.progressBar(b.progress, 'Project progress') : ''}
+        ${b.status === 'ACCEPTED' ? `
+        <div class="lh-progress-wrapper my-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Payment Tracking</span>
+            <span class="fw-bold">${DataMapper.currency(b.amountPaid || 0)} / ${DataMapper.currency(b.amount)}</span>
+          </div>
+          <div class="progress" style="height: 6px;">
+            <div class="progress-bar bg-success" role="progressbar" style="width: ${((b.amountPaid || 0) / b.amount * 100).toFixed(0)}%"></div>
+          </div>
+        </div>` : ''}
+
+        ${b.progress !== undefined ? `
+        <div class="lh-progress-wrapper my-2">
+          <div class="d-flex justify-content-between small mb-1">
+            <span>Project Progress</span>
+            <span class="fw-bold">${b.progress}%</span>
+          </div>
+          ${DataMapper.progressBar(b.progress)}
+        </div>` : ''}
 
         <div class="d-flex justify-content-between align-items-center mt-2">
           <small class="text-muted">${DataMapper.timeAgo(b.submittedAt)}</small>
-          ${b.status === 'PENDING'
+          ${b.status === 'PENDING' && !SessionManager.getCurrentUser()?.role?.includes('owner')
             ? `<button class="btn btn-sm btn-outline-danger" onclick="event.stopPropagation();withdrawBid(${b.id})">Withdraw</button>`
             : ''}
         </div>
@@ -119,12 +140,14 @@
   }
 
   async function withdrawBid(id) {
-    if (!confirm('Withdraw this bid?')) return;
-    try {
-      await Api.bid.withdraw(id);
-      allBids = allBids.filter(b => b.id !== id);
-      renderBids(allBids);
-    } catch (err) { alert(`Error: ${err.message}`); }
+    Notify.confirm('Withdraw this bid?', async () => {
+      try {
+        await Api.bid.withdraw(id);
+        allBids = allBids.filter(b => b.id !== id);
+        renderBids(allBids);
+        Notify.success("Bid withdrawn successfully");
+      } catch (err) { Notify.error(`Error: ${err.message}`); }
+    });
   }
 
   function renderBids(bids) {
@@ -132,7 +155,16 @@
   }
 
   function filterBids(status) {
-    const filtered = status === 'ALL' ? allBids : allBids.filter(b => b.status === status);
+    let filtered = [];
+    if (status === 'ALL') {
+      filtered = allBids;
+    } else if (status === 'COMPLETED') {
+      filtered = allBids.filter(b => b.status === 'ACCEPTED' && (b.projectStatus === 'COMPLETED' || b.projectStatus === 'PAYMENT_VERIFIED'));
+    } else if (status === 'ACCEPTED') {
+      filtered = allBids.filter(b => b.status === 'ACCEPTED' && b.projectStatus !== 'COMPLETED' && b.projectStatus !== 'PAYMENT_VERIFIED');
+    } else {
+      filtered = allBids.filter(b => b.status === status);
+    }
     renderBids(filtered);
   }
 
@@ -142,14 +174,16 @@
       allBids = await Api.bid.getMyBids();
 
       // Summary chips
-      const pending  = allBids.filter(b => b.status === 'PENDING').length;
-      const accepted = allBids.filter(b => b.status === 'ACCEPTED').length;
-      const rejected = allBids.filter(b => b.status === 'REJECTED').length;
+      const pending   = allBids.filter(b => b.status === 'PENDING').length;
+      const completed = allBids.filter(b => b.status === 'ACCEPTED' && (b.projectStatus === 'COMPLETED' || b.projectStatus === 'PAYMENT_VERIFIED')).length;
+      const active    = allBids.filter(b => b.status === 'ACCEPTED' && b.projectStatus !== 'COMPLETED' && b.projectStatus !== 'PAYMENT_VERIFIED').length;
+      const rejected  = allBids.filter(b => b.status === 'REJECTED').length;
+
       document.getElementById('bid-summary').innerHTML = `
         <span class="badge text-bg-warning px-3 py-2">⏳ ${pending} Pending</span>
-        <span class="badge text-bg-success px-3 py-2">✅ ${accepted} Accepted</span>
-        <span class="badge text-bg-danger px-3 py-2">❌ ${rejected} Rejected</span>
-        <span class="badge text-bg-secondary px-3 py-2">Total: ${allBids.length}</span>`;
+        <span class="badge text-bg-primary px-3 py-2">⚡ ${active} Active</span>
+        <span class="badge text-bg-success px-3 py-2">✅ ${completed} Completed</span>
+        <span class="badge text-bg-danger px-3 py-2">❌ ${rejected} Rejected</span>`;
 
       renderBids(allBids);
     } catch (err) {

@@ -43,6 +43,12 @@ public class ProjectDto {
         private String postedAt;
         private int bidCount;
         private Double distanceKm; // only set in nearby searches
+        
+        // Accepted Bid details (populated if project is IN_PROGRESS or later)
+        private Long workerId;
+        private String acceptedBidWorkerName;
+        private Long acceptedBidAmount;
+        private Long acceptedBidPaid;
     }
 
     @Data

@@ -3,6 +3,7 @@ package com.labourhand.service;
 import com.labourhand.dto.ProjectDto;
 import com.labourhand.model.*;
 import com.labourhand.repository.*;
+import com.labourhand.dto.ProgressUpdateDto;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -21,6 +22,8 @@ public class ProjectService {
     private final BidRepository bidRepository;
     private final UserService userService;
     private final OwnerProfileRepository ownerProfileRepository;
+    private final ProgressUpdateRepository progressUpdateRepository;
+    private final PaymentRepository paymentRepository;
 
     public List<ProjectDto.Response> getAllOpenProjects() {
         return projectRepository.findByStatus(Project.Status.OPEN_FOR_BIDS)
@@ -43,8 +46,20 @@ public class ProjectService {
     }
 
     public List<ProjectDto.Response> getProjectsByCategory(String category) {
-        return projectRepository.findByCategory(category)
+        // Only show OPEN_FOR_BIDS jobs when browsing by category
+        return projectRepository.findByCategoryAndStatus(category, Project.Status.OPEN_FOR_BIDS)
                 .stream().map(p -> toResponse(p, null)).collect(Collectors.toList());
+    }
+
+    public List<ProjectDto.Response> getNearbyProjectsByCategory(double lat, double lng, double radius, String category) {
+        List<Object[]> rows = projectRepository.findNearbyProjectsByCategoryRaw(lat, lng, radius, category);
+        return rows.stream().map(row -> {
+            Long id = ((Number) row[0]).longValue();
+            Project p = projectRepository.findById(id).orElse(null);
+            if (p == null) return null;
+            Double dist = ((Number) row[row.length - 1]).doubleValue();
+            return toResponse(p, dist);
+        }).filter(r -> r != null).collect(Collectors.toList());
     }
 
     public List<ProjectDto.Response> getMyProjects() {
@@ -113,6 +128,14 @@ public class ProjectService {
     public ProjectDto.Response updateProgress(Long id, ProjectDto.ProgressRequest req) {
         Project p = projectRepository.findById(id)
                 .orElseThrow(() -> new RuntimeException("Project not found"));
+        
+        if (req.getStatus() == Project.Status.COMPLETED && p.getAcceptedBidId() != null) {
+            Bid bid = bidRepository.findById(p.getAcceptedBidId()).orElseThrow(() -> new RuntimeException("Bid not found"));
+            if (bid.getAmountPaid() < bid.getAmount()) {
+                throw new RuntimeException("Cannot complete project. Unpaid balance remains.");
+            }
+        }
+
         p.setProgress(req.getProgress());
         if (req.getStatus() != null)
             p.setStatus(req.getStatus());
@@ -121,6 +144,107 @@ public class ProjectService {
 
     public void deleteProject(Long id) {
         projectRepository.deleteById(id);
+    }
+
+    public List<ProgressUpdateDto.Response> getProjectUpdates(Long projectId) {
+        return progressUpdateRepository.findByProjectIdOrderByCreatedAtAsc(projectId).stream()
+                .map(this::toProgressUpdateDtoResponse)
+                .collect(Collectors.toList());
+    }
+
+    @Transactional
+    public ProgressUpdateDto.Response addProgressUpdate(Long projectId, ProgressUpdateDto.Request req) {
+        User currentUser = userService.getCurrentUser();
+        Project project = projectRepository.findById(projectId)
+                .orElseThrow(() -> new RuntimeException("Project not found"));
+
+        if (!project.getOwnerId().equals(currentUser.getId())) {
+             // Must be the assigned worker if not the owner
+             if (project.getAcceptedBidId() != null) {
+                 Bid b = bidRepository.findById(project.getAcceptedBidId()).orElseThrow(() -> new RuntimeException("Bid not found"));
+                 if (!b.getWorkerId().equals(currentUser.getId())) {
+                     throw new IllegalStateException("Not authorized to post updates for this project");
+                 }
+                 
+                 // Validate demand amount
+                 if (Boolean.TRUE.equals(req.getPaymentDemanded()) && req.getDemandAmount() != null) {
+                     long remaining = b.getAmount() - b.getAmountPaid();
+                     if (req.getDemandAmount() > remaining) {
+                         throw new RuntimeException("Demand amount (" + req.getDemandAmount() + ") exceeds remaining budget (" + remaining + ")");
+                     }
+                 }
+             } else {
+                 throw new IllegalStateException("Project not assigned yet");
+             }
+        }
+
+        ProgressUpdate update = ProgressUpdate.builder()
+                .projectId(projectId)
+                .userId(currentUser.getId())
+                .progressPercentage(req.getProgressPercentage())
+                .comment(req.getComment())
+                .paymentDemanded(req.getPaymentDemanded())
+                .demandAmount(req.getDemandAmount())
+                .build();
+        
+        update = progressUpdateRepository.save(update);
+
+        // Sync project progress
+        if (req.getProgressPercentage() != null) {
+            project.setProgress(req.getProgressPercentage());
+            if (req.getProgressPercentage() == 100 && project.getStatus() != Project.Status.COMPLETED) {
+                if (project.getAcceptedBidId() != null) {
+                    Bid bid = bidRepository.findById(project.getAcceptedBidId()).orElse(null);
+                    if (bid != null && bid.getAmountPaid() >= bid.getAmount()) {
+                        project.setStatus(Project.Status.COMPLETED);
+                    }
+                }
+            }
+            projectRepository.save(project);
+        }
+
+        ProgressUpdateDto.Response r = new ProgressUpdateDto.Response();
+        r.setId(update.getId());
+        r.setProjectId(update.getProjectId());
+        r.setUserId(update.getUserId());
+        r.setProgressPercentage(update.getProgressPercentage());
+        r.setComment(update.getComment());
+        r.setPaymentDemanded(update.getPaymentDemanded());
+        r.setDemandAmount(update.getDemandAmount());
+        r.setCreatedAt(update.getCreatedAt().toString());
+        r.setUserName(currentUser.getName());
+        r.setUserRole(currentUser.getRole().name());
+        r.setUserAvatar(currentUser.getAvatar());
+        return r;
+    }
+
+    private ProgressUpdateDto.Response toProgressUpdateDtoResponse(ProgressUpdate update) {
+        ProgressUpdateDto.Response r = new ProgressUpdateDto.Response();
+        r.setId(update.getId());
+        r.setProjectId(update.getProjectId());
+        r.setUserId(update.getUserId());
+        r.setProgressPercentage(update.getProgressPercentage());
+        r.setComment(update.getComment());
+        r.setPaymentDemanded(update.getPaymentDemanded());
+        r.setDemandAmount(update.getDemandAmount());
+        r.setCreatedAt(update.getCreatedAt().toString());
+        
+        // Fetch payment status if demanded
+        if (Boolean.TRUE.equals(update.getPaymentDemanded())) {
+            List<Payment> payments = paymentRepository.findByProgressUpdateId(update.getId());
+            if (!payments.isEmpty()) {
+                r.setPaymentStatus(payments.get(0).getStatus().name());
+            } else {
+                r.setPaymentStatus("PENDING");
+            }
+        }
+
+        userRepository.findById(update.getUserId()).ifPresent(u -> {
+            r.setUserName(u.getName());
+            r.setUserRole(u.getRole().name());
+            r.setUserAvatar(u.getAvatar());
+        });
+        return r;
     }
 
     // ── DTO Mapper ─────────────────────────────────────────────────────────
@@ -143,6 +267,16 @@ public class ProjectService {
         r.setBidCount((int) bidRepository.findByProjectId(p.getId()).size());
         r.setPostedAt(formatRelative(p.getCreatedAt()));
         userRepository.findById(p.getOwnerId()).ifPresent(u -> r.setOwnerName(u.getName()));
+        
+        if (p.getAcceptedBidId() != null) {
+            bidRepository.findById(p.getAcceptedBidId()).ifPresent(bid -> {
+                r.setWorkerId(bid.getWorkerId());
+                r.setAcceptedBidAmount(bid.getAmount());
+                r.setAcceptedBidPaid(bid.getAmountPaid());
+                userRepository.findById(bid.getWorkerId()).ifPresent(u -> r.setAcceptedBidWorkerName(u.getName()));
+            });
+        }
+        
         return r;
     }
 

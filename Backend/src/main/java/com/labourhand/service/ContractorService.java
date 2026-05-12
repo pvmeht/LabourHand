@@ -145,11 +145,7 @@ public class ContractorService {
         long assigned = bidRepository.findByProjectId(p.getId()).stream()
                 .filter(b -> b.getStatus() == Bid.Status.ACCEPTED).count();
         r.setWorkersAssigned((int) assigned);
-        // at-risk if deadline within 3 days and progress < 80
-        boolean atRisk = p.getDeadline() != null
-                && p.getDeadline().isBefore(LocalDate.now().plusDays(4))
-                && p.getProgress() < 80;
-        r.setStatus(atRisk ? "at-risk" : "on-track");
+        r.setStatus(p.getStatus().name());
         return r;
     }
 

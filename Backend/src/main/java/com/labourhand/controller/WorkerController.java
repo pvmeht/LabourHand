@@ -16,6 +16,8 @@ import java.util.List;
 public class WorkerController {
 
     private final WorkerService workerService;
+    private final com.labourhand.service.RatingService ratingService;
+    private final com.labourhand.service.UserService userService;
 
     // ── Workers ────────────────────────────────────────────────────────────
     @GetMapping("/api/workers")
@@ -50,6 +52,13 @@ public class WorkerController {
         return ResponseEntity.noContent().build();
     }
 
+    @PostMapping("/api/workers/payment-details")
+    public ResponseEntity<Void> updatePaymentDetails(
+            @Valid @RequestBody com.labourhand.dto.WorkerPaymentDetailsDto req) {
+        workerService.updatePaymentDetails(req);
+        return ResponseEntity.noContent().build();
+    }
+
     // ── Reviews ────────────────────────────────────────────────────────────
     @GetMapping("/api/reviews")
     public ResponseEntity<List<MiscDto.ReviewResponse>> getAllReviews() {
@@ -62,9 +71,14 @@ public class WorkerController {
     }
 
     @PostMapping("/api/reviews")
-    public ResponseEntity<MiscDto.ReviewResponse> createReview(
-            @Valid @RequestBody MiscDto.ReviewRequest req) {
-        return ResponseEntity.ok(workerService.createReview(req));
+    public ResponseEntity<com.labourhand.dto.RatingDto.Response> createRating(
+            @Valid @RequestBody com.labourhand.dto.RatingDto.Request req) {
+        return ResponseEntity.ok(ratingService.addRating(req, userService.getCurrentUser().getId()));
+    }
+
+    @GetMapping("/api/workers/{id}/ratings")
+    public ResponseEntity<List<com.labourhand.dto.RatingDto.Response>> getRatings(@PathVariable Long id) {
+        return ResponseEntity.ok(ratingService.getRatingsForWorker(id));
     }
 
     @DeleteMapping("/api/reviews/{id}")

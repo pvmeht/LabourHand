@@ -6,7 +6,7 @@
 -- ============================================================
 
 -- Skills
-INSERT INTO skills (name) VALUES
+INSERT IGNORE INTO skills (name) VALUES
   ('Masonry'), ('Painting'), ('Plastering'), ('Electrical'),
   ('Plumbing'), ('Carpentry'), ('Tiling'), ('Concrete Work'),
   ('Waterproofing'), ('Stone Masonry'), ('Interior Design'), ('Texture Work');
@@ -14,7 +14,7 @@ INSERT INTO skills (name) VALUES
 -- ============================================================
 -- USERS – Workers
 -- ============================================================
-INSERT INTO users (name, email, phone, password_hash, role, avatar, verified, language, created_at) VALUES
+INSERT IGNORE INTO users (name, email, phone, password_hash, role, avatar, verified, language, created_at) VALUES
   ('Rajesh Kumar',  'rajesh@labourhand.com', '+91 9876543210',
    '$2a$10$mf28BKyvxe.wXkPbylHewOeGB6i4k1FRE6KXIlHiKcYA7LTXd0eRy',
    'WORKER',
@@ -48,7 +48,7 @@ INSERT INTO users (name, email, phone, password_hash, role, avatar, verified, la
 -- ============================================================
 -- USERS – Owners
 -- ============================================================
-INSERT INTO users (name, email, phone, password_hash, role, avatar, verified, language, created_at) VALUES
+INSERT IGNORE INTO users (name, email, phone, password_hash, role, avatar, verified, language, created_at) VALUES
   ('Priya Sharma',  'priya@labourhand.com',  '+91 9876543215',
    '$2a$10$yOiLsm0BT8vsqzS7m4xFp.yrvxRFrIcFmd.HwqiFvOEGi6lsN8eoi',
    'OWNER',
@@ -64,7 +64,7 @@ INSERT INTO users (name, email, phone, password_hash, role, avatar, verified, la
 -- ============================================================
 -- WORKER PROFILES (user_id matches users table auto-increment: 1-5)
 -- ============================================================
-INSERT INTO worker_profiles (user_id, specialization, years_experience, rating, completed_jobs, bio, skills_india_verified, on_time_rate, rehire_rate, status) VALUES
+INSERT IGNORE INTO worker_profiles (user_id, specialization, years_experience, rating, completed_jobs, bio, skills_india_verified, on_time_rate, rehire_rate, status) VALUES
   (1, 'Senior Mason',          15, 4.8, 127,
    'Experienced mason specializing in brick-laying, tiling, and concrete work.',
    true, 98.0, 95.0, 'available'),
@@ -86,7 +86,7 @@ INSERT INTO worker_profiles (user_id, specialization, years_experience, rating, 
    false, 94.0, 90.0, 'available');
 
 -- Worker Skills (skill IDs: 1=Masonry,2=Painting,3=Plastering,4=Electrical,5=Plumbing,6=Carpentry,7=Tiling,8=Concrete Work,9=Waterproofing)
-INSERT INTO worker_skills (worker_id, skill_id) VALUES
+INSERT IGNORE INTO worker_skills (worker_id, skill_id) VALUES
   (1,1),(1,3),(1,7),(1,8),(1,10),  -- Rajesh: Mason
   (2,2),(2,3),(2,9),                -- Amit: Painter
   (3,4),                            -- Suresh: Electrician
@@ -94,7 +94,7 @@ INSERT INTO worker_skills (worker_id, skill_id) VALUES
   (5,6),(5,7);                      -- Ravi: Carpenter
 
 -- Certifications
-INSERT INTO certifications (worker_id, name, issuer, year) VALUES
+INSERT IGNORE INTO certifications (worker_id, name, issuer, year) VALUES
   (1, 'Skills India Certified Mason',       'National Skill Development Corporation', '2023'),
   (1, 'Construction Safety Training',       'CIDC',                                   '2024'),
   (2, 'Asian Paints Certified Applicator',  'Asian Paints Ltd.',                      '2022'),
@@ -104,14 +104,14 @@ INSERT INTO certifications (worker_id, name, issuer, year) VALUES
 -- ============================================================
 -- OWNER PROFILES (user_id: 6=Priya, 7=Arjun)
 -- ============================================================
-INSERT INTO owner_profiles (user_id, company_name, projects_posted) VALUES
+INSERT IGNORE INTO owner_profiles (user_id, company_name, projects_posted) VALUES
   (6, 'Sharma Constructions', 3),
   (7, 'Mehta Builders',       2);
 
 -- ============================================================
 -- PROJECTS (owner_id 6 = Priya, 7 = Arjun)
 -- ============================================================
-INSERT INTO projects (title, description, category, budget, timeline_days, location, lat, lng, status, owner_id, progress, created_at) VALUES
+INSERT IGNORE INTO projects (title, description, category, budget, timeline_days, location, lat, lng, status, owner_id, progress, created_at) VALUES
   ('Apartment Painting',
    'Need experienced painters for a 3BHK apartment. Walls and ceiling work required. High-quality finish expected.',
    'Painting', 10000, 5, 'Indiranagar, Bangalore', 12.9716, 77.6412, 'OPEN_FOR_BIDS', 6, 0, DATE_SUB(NOW(), INTERVAL 2 DAY)),
@@ -135,7 +135,7 @@ INSERT INTO projects (title, description, category, budget, timeline_days, locat
 -- ============================================================
 -- BIDS (project 1 = Apartment Painting, project 2 = Kitchen)
 -- ============================================================
-INSERT INTO bids (project_id, worker_id, amount, estimated_days, message, status, recommended, submitted_at) VALUES
+INSERT IGNORE INTO bids (project_id, worker_id, amount, estimated_days, message, status, recommended, submitted_at) VALUES
   -- Project 1: Apartment Painting (open for bids)
   (1, 1, 9500,  4, 'I have 15 years of experience in painting. Can provide samples. Free touch-up for 1 year.', 'PENDING', true,  DATE_SUB(NOW(), INTERVAL 2 HOUR)),
   (1, 2, 8800,  5, 'Professional painter with Asian Paints certification. Free color consultation included.',   'PENDING', false, DATE_SUB(NOW(), INTERVAL 5 HOUR)),
@@ -155,12 +155,12 @@ UPDATE projects SET accepted_bid_id = 5 WHERE id = 2;
 -- ============================================================
 -- CONVERSATIONS & MESSAGES
 -- ============================================================
-INSERT INTO conversations (participant1_id, participant2_id, project_id, created_at) VALUES
+INSERT IGNORE INTO conversations (participant1_id, participant2_id, project_id, created_at) VALUES
   (6, 1, 1, DATE_SUB(NOW(), INTERVAL 2 HOUR)),  -- Priya ↔ Rajesh re: Apartment Painting
   (7, 1, 4, DATE_SUB(NOW(), INTERVAL 2 DAY)),   -- Arjun ↔ Rajesh re: Villa Construction
   (6, 3, 3, DATE_SUB(NOW(), INTERVAL 3 HOUR));  -- Priya ↔ Suresh re: Electrical
 
-INSERT INTO messages (conversation_id, sender_id, content, sent_at, is_read) VALUES
+INSERT IGNORE INTO messages (conversation_id, sender_id, content, sent_at, is_read) VALUES
   (1, 6, 'Can you start the painting work tomorrow?',          DATE_SUB(NOW(), INTERVAL 2 HOUR),   false),
   (1, 1, 'Yes, I will be there at 9 AM with materials.',       DATE_SUB(NOW(), INTERVAL 90 MINUTE),true),
   (1, 6, 'Great! Please bring premium quality paint brushes.', DATE_SUB(NOW(), INTERVAL 30 MINUTE),false),
@@ -174,7 +174,7 @@ INSERT INTO messages (conversation_id, sender_id, content, sent_at, is_read) VAL
 -- ============================================================
 -- REVIEWS (for worker 1 = Rajesh)
 -- ============================================================
-INSERT INTO reviews (project_id, reviewer_id, reviewee_id, rating, comment, duration, project_name, client_name, created_at) VALUES
+INSERT IGNORE INTO reviews (project_id, reviewer_id, reviewee_id, rating, comment, duration, project_name, client_name, created_at) VALUES
   (4, 7, 1, 5.0, 'Excellent work! Rajesh completed the masonry ahead of schedule with perfect quality.',
    '45 days', 'Residential Villa Construction', 'Arjun Mehta', DATE_SUB(NOW(), INTERVAL 30 DAY)),
   (5, 6, 1, 4.8, 'Very professional and skilled. The tiling work was done perfectly with clean finish.',
@@ -183,7 +183,7 @@ INSERT INTO reviews (project_id, reviewer_id, reviewee_id, rating, comment, dura
 -- ============================================================
 -- EARNINGS (for owner 6 = Priya, last 7 days)
 -- ============================================================
-INSERT INTO earnings (owner_id, project_id, amount, date) VALUES
+INSERT IGNORE INTO earnings (owner_id, project_id, amount, date) VALUES
   (6, 2, 8500,  DATE_SUB(CURDATE(), INTERVAL 6 DAY)),
   (6, 2, 12000, DATE_SUB(CURDATE(), INTERVAL 5 DAY)),
   (6, 5, 15000, DATE_SUB(CURDATE(), INTERVAL 4 DAY)),
@@ -193,7 +193,7 @@ INSERT INTO earnings (owner_id, project_id, amount, date) VALUES
   (6, 2, 9000,  CURDATE());
 
 -- SCHEDULE EVENTS
-INSERT INTO schedule_events (worker_id, project_id, date, start_time, end_time) VALUES
+INSERT IGNORE INTO schedule_events (worker_id, project_id, date, start_time, end_time) VALUES
   (1, 2, DATE_ADD(CURDATE(), INTERVAL 1 DAY),  '09:00:00', '17:00:00'),
   (3, 3, DATE_ADD(CURDATE(), INTERVAL 1 DAY),  '08:00:00', '16:00:00'),
   (4, 2, DATE_ADD(CURDATE(), INTERVAL 2 DAY),  '10:00:00', '18:00:00');

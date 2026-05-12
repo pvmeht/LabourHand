@@ -17,7 +17,7 @@
            class="rounded-circle border" style="width:46px;height:46px;object-fit:cover;" alt="avatar" />
       <div>
         <h6 class="mb-0 fw-bold" id="hdr-name">—</h6>
-        <small class="text-muted" id="hdr-company">Employer</small>
+        <small class="text-muted" id="hdr-role">Employer</small>
       </div>
     </div>
     <div class="d-flex gap-2">
@@ -54,8 +54,8 @@
       </div>
       <div class="col-6 col-md-3">
         <div class="lh-card p-3 text-center">
-          <p class="h4 fw-bold mb-0" id="stat-earnings">—</p>
-          <small class="text-muted">Total Earned</small>
+          <p class="h4 fw-bold mb-0 text-success" id="stat-earnings">—</p>
+          <small class="text-muted">Total Spent</small>
         </div>
       </div>
       <div class="col-6 col-md-3">
@@ -90,10 +90,10 @@
       </div>
     </section>
 
-    <!-- Earnings -->
+    <!-- Expenses -->
     <section class="mb-4">
       <div class="d-flex align-items-center justify-content-between mb-2">
-        <h5 class="lh-section-title mb-0">Earnings</h5>
+        <h5 class="lh-section-title mb-0">Project Expenses</h5>
         <div>
           <button class="btn btn-sm btn-outline-secondary me-1" onclick="loadEarnings('week')" id="earn-week">Week</button>
           <button class="btn btn-sm btn-outline-secondary" onclick="loadEarnings('month')" id="earn-month">Month</button>
@@ -164,8 +164,8 @@
               <input type="number" id="pj-days" class="form-control" placeholder="7" required />
             </div>
             <div class="col-6">
-              <label class="form-label fw-medium">Location</label>
-              <input type="text" id="pj-location" class="form-control" placeholder="Bengaluru, KA" required />
+              <label class="form-label fw-medium">Location <small class="text-muted fw-normal">(City or Pincode)</small></label>
+              <input type="text" id="pj-location" class="form-control" placeholder="e.g. Pune, 411001" required />
             </div>
           </div>
         </div>
@@ -189,10 +189,7 @@
 <script>
   Router.requireAuth();
 
-  const user = SessionManager.getCurrentUser();
-  document.getElementById('hdr-name').textContent    = user?.name    || 'Employer';
-  document.getElementById('hdr-company').textContent = user?.companyName || 'Employer';
-  if (user?.avatar) document.getElementById('hdr-avatar').src = user.avatar;
+  SessionManager.initCommonUI();
 
   /* ── Load all data ───────────────────────────────────── */
   async function loadAll() {
@@ -294,13 +291,30 @@
     btn.disabled = true;
     btn.textContent = 'Posting…';
     try {
+      const locationText = document.getElementById('pj-location').value.trim();
+      let lat = null, lng = null;
+      try {
+        const resp = await fetch(`https://nominatim.openstreetmap.org/search?format=json&q=${encodeURIComponent(locationText)}`);
+        const data = await resp.json();
+        if (data && data.length > 0) {
+          lat = parseFloat(data[0].lat);
+          lng = parseFloat(data[0].lon);
+        } else {
+          throw new Error("Could not locate this address on the map. Please enter a recognized City name or Pincode (e.g. 'Chakan, Pune' or '410501').");
+        }
+      } catch (err) {
+        throw new Error(err.message || "Failed to fetch map coordinates for this location.");
+      }
+
       await Api.project.create({
         title:        document.getElementById('pj-title').value.trim(),
         description:  document.getElementById('pj-desc').value.trim(),
         category:     document.getElementById('pj-cat').value,
         budget:       Number(document.getElementById('pj-budget').value),
         timelineDays: Number(document.getElementById('pj-days').value),
-        location:     document.getElementById('pj-location').value.trim(),
+        location:     locationText,
+        lat:          lat,
+        lng:          lng
       });
       bootstrap.Modal.getInstance(document.getElementById('postJobModal')).hide();
       loadProjects();

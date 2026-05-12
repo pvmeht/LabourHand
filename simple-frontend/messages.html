@@ -104,6 +104,7 @@
 <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/js/bootstrap.bundle.min.js"></script>
 <script src="js/session.js"></script>
 <script src="js/router.js"></script>
+<script src="js/notify.js"></script>
 <script src="js/apiService.js"></script>
 <script src="js/dataMapper.js"></script>
 <script src="js/mockTest.js"></script>
@@ -177,11 +178,12 @@
   }
 
   function promptNewChat() {
-    const idStr = prompt("Enter the User ID to start a conversation:");
-    if (!idStr) return;
-    const uid = parseInt(idStr.trim(), 10);
-    if (!uid) return alert('Invalid User ID');
-    openThread('new', uid, 'User ' + uid, '');
+    Notify.prompt("Enter the User ID to start a conversation:", "", (idStr) => {
+      if (!idStr) return;
+      const uid = parseInt(idStr.trim(), 10);
+      if (!uid) { Notify.error('Invalid User ID'); return; }
+      openThread('new', uid, 'User ' + uid, '');
+    });
   }
 
   async function loadMessages(convId) {
@@ -219,7 +221,7 @@
       await Api.message.send(activeReceiverId, content);
       await loadMessages(activeConvId);
     } catch (err) {
-      alert(`Failed to send: ${err.message}`);
+      Notify.error(`Failed to send: ${err.message}`);
     }
   });
 

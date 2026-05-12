@@ -52,11 +52,17 @@ const projectApi = {
     getNearby: (lat = 12.9716, lng = 77.5946, radius = 10) =>
         _request('GET', `/projects/nearby?lat=${lat}&lng=${lng}&radius=${radius}`),
     getByCategory: (cat) => _request('GET', `/projects/category/${cat}`),
+    getNearbyByCategory: (lat, lng, radius, cat) =>
+        _request('GET', `/projects/nearby/category/${cat}?lat=${lat}&lng=${lng}&radius=${radius}`),
     getMyProjects: () => _request('GET', '/projects/my'),
     getById: (id) => _request('GET', `/projects/${id}`),
     create: (data) => _request('POST', '/projects', data),
     update: (id, data) => _request('PUT', `/projects/${id}`, data),
     updateProgress: (id, progress, status) => _request('PUT', `/projects/${id}/progress`, { progress, status }),
+    getUpdates: (id) => _request('GET', `/projects/${id}/updates`),
+    postUpdate: (id, data) => _request('POST', `/projects/${id}/updates`, data),
+    payUpdate: (id, data) => _request('POST', `/projects/${id}/pay`, data),
+    getPayments: (id) => _request('GET', `/projects/${id}/payments`),
     delete: (id) => _request('DELETE', `/projects/${id}`),
 };
 
@@ -77,9 +83,11 @@ const workerApi = {
     getAll: () => _request('GET', '/workers'),
     getById: (id) => _request('GET', `/workers/${id}`),
     getReviews: (id) => _request('GET', `/workers/${id}/reviews`),
+    getRatings: (id) => _request('GET', `/workers/${id}/ratings`),
     getCertifications: (id) => _request('GET', `/workers/${id}/certifications`),
     addCertification: (data) => _request('POST', '/workers/certifications', data),
     deleteCertification: (id) => _request('DELETE', `/workers/certifications/${id}`),
+    updatePaymentDetails: (data) => _request('POST', '/workers/payment-details', data),
 };
 
 // ─── Reviews ──────────────────────────────────────────────────────────────────
